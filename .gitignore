@@ -1,0 +1,8 @@
+node_modules
+dist
+.vercel
+.env.local
+.env.*.local
+# Plaintext of the protected pages: only the encrypted bundle (src/generated/private.enc.json) is committed.
+content/private/
+*.tsbuildinfo
