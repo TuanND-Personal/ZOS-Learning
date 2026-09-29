@@ -5,9 +5,10 @@
 //   - the content key is also stored wrapped with a key derived from ZOS_PASSWORD (PBKDF2-SHA256), so the
 //     password unlocks the pages fully in the browser;
 //   - the raw content key is kept in .env.local as ZOS_CONTENT_KEY for /api/unlock (Google sign-in path).
-// Only the output JSON is committed; content/private/ and .env.local are git-ignored.
+//   - images in content/private/media/ are encrypted with the same content key into public/m/*.bin.
+// Only the encrypted outputs are committed; content/private/ and .env.local are git-ignored.
 import { webcrypto as crypto } from 'node:crypto';
-import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -77,6 +78,22 @@ const pwKey = await crypto.subtle.deriveKey(
   ['encrypt'],
 );
 
+// Images of the private pages: content/private/media/<name> -> public/m/<name>.bin (12-byte IV + AES-GCM ciphertext).
+const MEDIA_SRC = join(SRC, 'media');
+const MEDIA_OUT = join(ROOT, 'public/m');
+// Empty the folder instead of deleting it: a running dev server keeps watching the same directory.
+mkdirSync(MEDIA_OUT, { recursive: true });
+for (const old of readdirSync(MEDIA_OUT)) rmSync(join(MEDIA_OUT, old));
+let mediaCount = 0;
+if (existsSync(MEDIA_SRC)) {
+  for (const file of readdirSync(MEDIA_SRC).sort()) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, contentKey, readFileSync(join(MEDIA_SRC, file))));
+    writeFileSync(join(MEDIA_OUT, `${file}.bin`), Buffer.concat([iv, ct]));
+    mediaCount++;
+  }
+}
+
 const docs = [];
 for (const file of readdirSync(SRC).filter((f) => f.endsWith('.md')).sort()) {
   const text = readFileSync(join(SRC, file), 'utf8');
@@ -91,4 +108,4 @@ const out = {
 };
 mkdirSync(join(ROOT, 'src/generated'), { recursive: true });
 writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n');
-console.log(`Encrypted ${docs.length} page(s) -> src/generated/private.enc.json`);
+console.log(`Encrypted ${docs.length} page(s) -> src/generated/private.enc.json, ${mediaCount} image(s) -> public/m/`);

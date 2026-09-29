@@ -462,3 +462,26 @@ tr:last-child td {
     align-items: flex-start;
   }
 }
+
+/* Private (encrypted) images */
+.md img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: block;
+}
+.md .zoom {
+  display: block;
+  margin: 0.8em 0 0.3em;
+}
+.img-loading,
+.img-missing {
+  display: block;
+  padding: 24px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}

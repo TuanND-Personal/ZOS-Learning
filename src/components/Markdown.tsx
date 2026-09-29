@@ -1,4 +1,6 @@
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
+import { useEffect, useState } from 'react';
+import { useVault } from '../lib/vault';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
 import GithubSlugger from 'github-slugger';
@@ -39,12 +41,38 @@ export function toc(markdown: string): TocItem[] {
   return items;
 }
 
+const MEDIA = 'zos-media:';
+
+function PrivateImage({ name, alt }: { name: string; alt: string }) {
+  const vault = useVault();
+  const [src, setSrc] = useState<string>();
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    vault
+      .media(name)
+      .then((url) => alive && setSrc(url))
+      .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, [vault, name]);
+  if (failed) return <span className="img-missing">Không tải được ảnh ({alt}).</span>;
+  if (!src) return <span className="img-loading">Đang giải mã ảnh…</span>;
+  return (
+    <a href={src} target="_blank" rel="noreferrer" className="zoom">
+      <img src={src} alt={alt} loading="lazy" />
+    </a>
+  );
+}
+
 export default function Markdown({ text }: { text: string }) {
   return (
     <div className="md">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSlug]}
+        urlTransform={(url) => (url.startsWith(MEDIA) ? url : defaultUrlTransform(url))}
         components={{
           a({ href = '', children }) {
             if (href.startsWith('#')) {
@@ -61,6 +89,10 @@ export default function Markdown({ text }: { text: string }) {
                 {children}
               </a>
             );
+          },
+          img({ src = '', alt = '' }) {
+            if (src.startsWith(MEDIA)) return <PrivateImage name={src.slice(MEDIA.length)} alt={alt} />;
+            return <img src={src} alt={alt} loading="lazy" />;
           },
           table({ children }) {
             return (

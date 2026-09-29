@@ -33,13 +33,32 @@ async function decrypt(key: CryptoKey, blob: EncBlob): Promise<ArrayBuffer> {
   return crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(blob.iv) }, key, fromB64(blob.ct));
 }
 
-async function openDocs(rawKey: Bytes): Promise<Record<string, string>> {
+async function openDocs(rawKey: Bytes): Promise<{ key: CryptoKey; docs: Record<string, string> }> {
   const key = await crypto.subtle.importKey('raw', rawKey, 'AES-GCM', false, ['decrypt']);
-  const out: Record<string, string> = {};
+  const docs: Record<string, string> = {};
   for (const d of (bundle as Bundle).docs) {
-    out[d.slug] = new TextDecoder().decode(await decrypt(key, d));
+    docs[d.slug] = new TextDecoder().decode(await decrypt(key, d));
   }
-  return out;
+  return { key, docs };
+}
+
+const mediaCache = new Map<string, Promise<string>>();
+
+/** Object URL of an encrypted image in public/m/ (12-byte IV followed by the AES-GCM ciphertext). */
+function openMedia(key: CryptoKey, name: string): Promise<string> {
+  let p = mediaCache.get(name);
+  if (!p) {
+    p = fetch(`${import.meta.env.BASE_URL}m/${encodeURIComponent(name)}.bin`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.arrayBuffer();
+      })
+      .then((buf) => crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(buf, 0, 12) }, key, new Uint8Array(buf, 12)))
+      .then((plain) => URL.createObjectURL(new Blob([plain], { type: name.endsWith('.png') ? 'image/png' : 'image/jpeg' })));
+    p.catch(() => mediaCache.delete(name));
+    mediaCache.set(name, p);
+  }
+  return p;
 }
 
 async function rawKeyFromPassword(password: string): Promise<Bytes> {
@@ -66,6 +85,8 @@ function storage(): Storage | null {
 interface Vault {
   unlocked: boolean;
   docs: Record<string, string>;
+  /** Object URL of a private image; rejects while locked. */
+  media(name: string): Promise<string>;
   unlockWithPassword(password: string, remember: boolean): Promise<void>;
   unlockWithKey(b64Key: string, remember: boolean): Promise<void>;
   lock(): void;
@@ -74,10 +95,10 @@ interface Vault {
 const VaultContext = createContext<Vault | null>(null);
 
 export function VaultProvider({ children }: { children: ReactNode }) {
-  const [docs, setDocs] = useState<Record<string, string> | null>(null);
+  const [opened, setOpened] = useState<{ key: CryptoKey; docs: Record<string, string> } | null>(null);
 
   const open = useCallback(async (raw: Bytes, remember: boolean) => {
-    const opened = await openDocs(raw);
+    const result = await openDocs(raw);
     if (remember) {
       try {
         storage()?.setItem(STORAGE_KEY, toB64(raw.buffer));
@@ -85,7 +106,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         /* storage unavailable: stay unlocked for this tab only */
       }
     }
-    setDocs(opened);
+    setOpened(result);
   }, []);
 
   useEffect(() => {
@@ -96,8 +117,9 @@ export function VaultProvider({ children }: { children: ReactNode }) {
   }, [open]);
 
   const value: Vault = {
-    unlocked: docs !== null,
-    docs: docs ?? {},
+    unlocked: opened !== null,
+    docs: opened?.docs ?? {},
+    media: (name) => (opened ? openMedia(opened.key, name) : Promise.reject(new Error('locked'))),
     unlockWithPassword: async (password, remember) => {
       let raw: Bytes;
       try {
@@ -110,7 +132,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     unlockWithKey: (b64Key, remember) => open(fromB64(b64Key), remember),
     lock: () => {
       storage()?.removeItem(STORAGE_KEY);
-      setDocs(null);
+      setOpened(null);
     },
   };
   return <VaultContext.Provider value={value}>{children}</VaultContext.Provider>;

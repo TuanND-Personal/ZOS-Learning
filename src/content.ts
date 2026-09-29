@@ -34,11 +34,13 @@ export const DOCS: DocMeta[] = [
   { section: 'hoc', slug: '05-bo-quy-tac', sourceName: '05-bo-quy-tac.md', title: '05 · Bộ quy tắc', summary: '20 quy tắc kèm bản chất và dẫn chứng, quy trình 1 phiên' },
   { section: 'hoc', slug: '06-danh-sach-case-lp', sourceName: '06-danh-sach-case-lp.md', title: '06 · Danh sách tình huống LP', summary: 'Mọi case LP để tự điền cách xử lý, dùng cho backtest' },
   { section: 'hoc', slug: '07-tam-ly-quan-ly-von', sourceName: '07-tam-ly-quan-ly-von.md', title: '07 · Tâm lý & quản lý vốn', summary: 'FOMO, không chờ retest, plan T, lot, mục tiêu thực tế' },
+  { section: 'hoc', slug: '08-danh-muc-case-vao-lenh', sourceName: '08-danh-muc-case-vao-lenh.md', title: '08 · Case vào lệnh H4 → M15', summary: '101 tình huống giá vs LP kèm đề xuất xử lý, setup chính và biến thể để backtest' },
   { section: 'cong-cu', slug: '03-huong-dan-su-dung-tool', sourceName: '03-huong-dan-su-dung-tool.md', title: 'Hướng dẫn dùng tool', summary: 'ZO_LP, ZO_View, ZO_DrawLP, ZO_Analyst: cài, đọc chart, cảnh báo, thông số' },
   { section: 'cong-cu', slug: '02-huong-dan-telegram-discord', sourceName: '02-huong-dan-telegram-discord.md', title: 'Tạo bot Telegram / webhook Discord', summary: 'Làm trên điện thoại, lấy token và chat id' },
   { section: 'cong-cu', slug: 'ky-thuat-setup', sourceName: 'setup.md', title: 'Ghi chú kỹ thuật', summary: 'Compile, thư mục MT4, Wine' },
   { section: 'cong-cu', slug: 'zos-buffers', sourceName: 'zos-buffers.md', title: 'Bảng buffer ZOS', summary: 'Dữ liệu ZOS đọc qua iCustom' },
   { section: 'discord', slug: 'bai-hoc-thuc-te', sourceName: '04-bai-hoc-thuc-te.md', title: '04 · Bài học thực chiến', summary: 'Trích Discord có ngày + sách PVSRA, xếp theo tình huống', isPrivate: true },
+  { section: 'discord', slug: 'minh-hoa-case', sourceName: 'minh-hoa-case.md', title: 'Minh hoạ case (ảnh Discord)', summary: 'Chart của Zerd / ZZZ / Zonal ghép với các case vào lệnh H4 → M15', isPrivate: true },
   { section: 'discord', slug: 'tong-ket-tool', sourceName: '04-tong-ket-tool.md', title: 'Cơ sở logic của tool', summary: 'Vì sao tool vẽ / cảnh báo như vậy, kèm trích dẫn Discord', isPrivate: true },
   { section: 'discord', slug: 'ghi-chep-goc', sourceName: 'notes_quotes.md', title: 'Ghi chép nghiên cứu gốc', summary: 'Toàn bộ trích dẫn theo thời gian 11/2023 → 09/2026', isPrivate: true },
 ];
