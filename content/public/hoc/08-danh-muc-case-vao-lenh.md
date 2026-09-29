@@ -24,6 +24,12 @@ xu thế H4 linh động (LP trend / màu ZOS H4 / chưa rõ), không giới h�
 "ở LP H4" cách vùng ≤ 10 pip, chờ nến vào lệnh tới 24h, chỉ tránh khuya 0–6h, **TP thẳng tới LP H4 ngược** (bỏ rút TP về LP M15),
 **BE ở 1.5R**. Setup chính (chặt) chỉ cho khoảng 1 lệnh/tháng.
 
+**Hệ đề xuất v2 (29/9, sau khi test nguyên tắc "1 phe đã thua"):** chỉ lệnh thuận xu hướng H4, vào khi có 1 trong 3 tín hiệu
+phe ngược đã thua tại LP H4: (1) LP/Main M15 cùng chiều + retest giữ được (E5), (2) quét điểm cuối LP H4 rồi lấy lại trong ≤ 3 nến M15 (A7),
+(3) nến M15 rút râu sâu quá 50% LP H4 rồi đóng lại ngoài mép (A21). Quản lý như bản linh động (BE 1.5R).
+Backtest: M15 4 tuần 8 lệnh (1.8/tuần) +7.1R; H1 thay M15 17 tuần 6 lệnh thắng 5, +7.4R. Thêm Build (PVSRA), râu nông
+hay lệnh ngược xu hướng đều làm kết quả kém đi trên cả 2 bộ dữ liệu.
+
 **Biến thể để backtest so sánh:**
 
 - **A — limit 50% LP M15** (E3): giá tốt hơn, RR cao hơn, nhưng khớp cả những lần giá đi xuyên.
@@ -80,7 +86,7 @@ Tìm các LP H4 gần giá và xem mỗi LP đang ở giai đoạn nào.
 | A4 | Bộ lọc | LP H4 đã break, giá chạy xa chưa retest | Giá cách mép ≥ runAway × chiều cao LP H4, chưa vào vùng. | Retest rồi run hiếm quay lại (28/2/2025); lỡ thì bỏ (ZZZ). | ✅ | BỎ QUA — không đuổi; chờ LP H4 tiếp theo hoặc retest (G7 tự loại nếu không có nền H4). |
 | A5 | Điểm vào | LP H4 đang retest nông (chạm mép gần) | Giá M15 chạm mép gần LP H4 (High G / Low R), chưa qua 50%. | LP lên rồi làm R thì retest hay nông (24/4/2025). | ✅ | CHỜ → trigger M15 (D1 / D2), không đặt limit trực tiếp ở mép H4. |
 | A6 | Điểm vào | LP H4 đang retest sâu (qua 50%) | Giá qua 50% LP H4, chưa qua điểm cuối. | ZZZ: cố bắt khi retest hơn 50% (22/11/2023). | ✅ | CHỜ → trigger M15 (D1 / D2). Vùng qua 50% là vùng đẹp nhất để chờ. |
-| A7 | Điểm vào | Giá quét qua điểm cuối LP H4 rồi quay lại | Râu M15/H4 qua Low G (High R) H4, nến H4 vẫn đóng trong LP. | Quét SL trước khi chạy; test lần 2 thọc sâu hơn (23/8/2024). | ✅ | CHỜ → trigger M15 (D1 / D2); SL phải ngoài râu quét. |
+| A7 | Điểm vào | Giá quét qua điểm cuối LP H4 rồi quay lại | Râu M15/H4 qua Low G (High R) H4, nến H4 vẫn đóng trong LP. | Quét SL trước khi chạy; test lần 2 thọc sâu hơn (23/8/2024). | ✅ | VÀO (T1): giá quét qua điểm cuối LP H4, trong ≤ 3 nến M15 đóng lại vào trong vùng → vào ở nến đó; SL ngoài râu quét + 2 pip; TP LP H4 ngược. Backtest 29/9: tốt nhất trên cả M15 và H1. |
 | A8 | Bộ lọc | Retest LP H4 lần đầu | retests H4 = 1. | Lần đầu mạnh nhất (1/12/2023, 3/1/2025). | ✅ | BỎ QUA — retest lần 1 là điểm cộng (tính riêng trong thống kê). |
 | A9 | Bộ lọc | Retest LP H4 lần 2 | retests H4 = 2. | Không còn full sức như lần đầu (3/1/2025). | ✅ | BỎ QUA — vẫn nhận; so sánh kết quả với lần 1. |
 | A10 | Bộ lọc | Retest LP H4 lần ≥ 3 | retests H4 ≥ 3. | Lần 3 là quyết định, quá 3 lần hay xoay (17/4/2025). | ✅ | BỎ QUA (bản linh động) — ghi số lần retest vào thống kê; bản chặt: LOẠI lần ≥ 3. |
@@ -93,6 +99,7 @@ Tìm các LP H4 gần giá và xem mỗi LP đang ở giai đoạn nào.
 | A17 | Bộ lọc | Kẹp chật giữa 2 LP H4 | Khoảng trống giữa LP H4 trên và dưới < tightPips. | LP chồng LP: kẽ hở 5–20 pip (19/9/2024). | ✅ | LOẠI — không đủ không gian cho RR. |
 | A18 | Bộ lọc | G H4 và R H4 chồng lấn nhau | Hai LP H4 ngược chiều sống, vùng giao nhau > 0. | Giáp lá cà, không có range chạy. | ✅ | LOẠI — giáp lá cà. |
 | A19 | Điểm vào | Giá chạm target H4 (LP H4 ngược phía trước) | Giá chạm mép LP H4 ngược chiều với xu thế đang chạy. | Chạm High R rồi thì sell dí không sao; chưa chạm mà sell = cờ bạc (24/3/2025). | ✅ | KHÔNG đánh ngược ngay tại target. Chỉ khi H4 đổi xu thế (B9) hoặc có Main H4 ngược mới. |
+| A21 | Điểm vào | Nến M15 rút râu sâu vào LP H4 rồi đóng lại ngoài mép | Nến M15 có râu xuống quá 50% LP H4 (G; ngược lại với R), đóng lại trên mép trên, râu ≥ 50% cả nến. | Càng gần Low G càng an toàn (23/11/2023); 1 phe đã thua: rút râu nhanh (PVSRA whip and whack). | ✅ | VÀO (T3b): vào ở nến đó; SL ngoài râu + 2 pip; TP LP H4 ngược. Râu chỉ chạm mép (T3) thì KHÔNG — backtest lỗ. |
 | A20 | Bộ lọc | Nhiều LP H4 cùng chiều xếp tầng phía sau giá | ≥ 3 LP H4 cùng chiều còn sống liên tiếp. | Nhiều lớp → càng quan trọng với MM (5/6/2025). | ✅ | BỎ QUA — điểm cộng khi chọn TP xa (nhiều lớp phía sau = nền chắc). |
 
 ## B. Bước 1 · Xu thế và Main H4
@@ -102,7 +109,7 @@ Phe nào đang thắng ở H4, Main / Shield H4 ở đâu, lực nến H4.
 | ID | Loại | Tình huống | Điều kiện máy đo | Gợi ý Discord | Máy | Đề xuất (sửa nếu không đúng ý) |
 |---|---|---|---|---|---|---|
 | B1 | Bộ lọc | Lệnh cùng xu thế LP H4 | Hướng lệnh = xu thế LP H4 (phe vừa giết LP gần nhất). | Không cản tàu (13/8/2025). | ✅ | BẮT BUỘC dạng linh động: xu thế LP H4 cùng hướng, HOẶC màu ZOS H4 cùng hướng, HOẶC xu thế H4 chưa rõ. Bản chặt: chỉ xu thế LP H4. |
-| B2 | Bộ lọc | Lệnh ngược xu thế LP H4 | Hướng lệnh ngược xu thế LP H4. | EP nghịch xu thế là 1 trong 4 EP không an toàn (27/10/2024). | ✅ | LOẠI khi cả xu thế LP H4 lẫn màu ZOS H4 đều ngược hướng lệnh. |
+| B2 | Bộ lọc | Lệnh ngược xu thế LP H4 | Hướng lệnh ngược xu thế LP H4. | EP nghịch xu thế là 1 trong 4 EP không an toàn (27/10/2024). | ✅ | LOẠI — backtest 29/9: lệnh ngược xu hướng (C1: vùng quan trọng + rút râu / quét điểm cuối, TP ≤ 3R) hoà trên M15, lỗ trên H1, chuỗi thua dài. |
 | B3 | Bộ lọc | Xu thế H4 chưa rõ | Chưa có LP H4 nào chết trong dữ liệu (trend = 0). |  | ✅ | LOẠI — chưa biết phe thắng. |
 | B4 | Điểm vào | Main H4 mới hình thành | Một LP H4 vừa được gắn Main (LP H4 ngược vừa chết). | Vừa xác nhận Main → khả năng test lại Shield (17/10/2024). | ✅ | CHỜ → giá retest Shield / Main H4 (B6 / B7) rồi trigger M15. |
 | B5 | Bộ lọc | Main H4 chưa có Shield | Main H4 sống, chưa có LP H4 cùng chiều nào sinh sau nó. | Tướng ra trận không có lính (26/7/2024). | ✅ | BỎ QUA — vẫn nhận; TEST có nên giảm lot không. |
