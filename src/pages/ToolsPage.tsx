@@ -5,7 +5,11 @@ const TOOLS = [
   { name: 'ZO_LP', kind: 'Indicator', what: 'Dựng LP từ ZOS trên từng khung, chia sẻ dữ liệu giữa 5 chart, cảnh báo retest / break / SETUP, gợi ý BE, kiểm tra lệnh.' },
   { name: 'ZO_View', kind: 'Indicator', what: 'Hộp LP khung đang mở (G xanh, R đỏ), đánh dấu nến break / clear / Main / build 1 đầu / thu nến, bảng phân tích W1→M15 không nhấp nháy.' },
   { name: 'ZO_DrawLP', kind: 'Script', what: 'Vẽ 1 lần các LP quan trọng W1 / D1 / H4 bằng cặp đường có nhãn (H-RLP-W1 …), màu theo khung, đánh dấu Main.' },
-  { name: 'ZO_Analyst', kind: 'EA', what: 'Viết phân tích khi gắn và khi cấu trúc đổi (Main mới, đổi xu thế, chạm LP lớn), gửi Telegram / Discord; chuyển tiếp cảnh báo của ZO_LP.' },
+  { name: 'ZO_Analyst', kind: 'EA', what: 'Phân tích thị trường, báo Potential EP và tín hiệu vào lệnh của hệ ZEAR2, nhắc BE / chốt, cảnh báo tin, gửi Telegram. Trên tài khoản demo tự đặt và quản lý lệnh; trên tài khoản thật mặc định chỉ báo tín hiệu.' },
+  { name: 'ZO_BTView', kind: 'Indicator', what: 'Xem lại lệnh backtest của hệ ZEAR2 trên chart; bấm vào một lệnh để xem vì sao vào, yếu tố ủng hộ và không ủng hộ.' },
+  { name: 'ZO_Review', kind: 'Indicator', what: 'Chart sạch (LP H4 / D1 / W1 dạng đường, LP M15 dạng hộp) để tự đánh dấu điểm vào bằng mũi tên.' },
+  { name: 'ZO_Wick', kind: 'Indicator', what: 'Đánh dấu nến ZOS râu dài và nến hết râu, để kiểm tra máy nhận diện có đúng ý bạn không.' },
+  { name: 'ZO_ExportMarks', kind: 'Script', what: 'Xuất các mũi tên bạn tự đánh dấu ra file để so với hệ.' },
   { name: 'ZO_Notifier', kind: 'EA', what: 'Bản cũ chỉ chuyển cảnh báo — không cần nếu dùng ZO_Analyst.' },
   { name: 'ZOS_Probe', kind: 'Script', what: 'Xuất dữ liệu ZOS ra CSV (dùng cho backtest).' },
 ];
@@ -15,7 +19,10 @@ export default function ToolsPage() {
   return (
     <div className="page">
       <h1>Công cụ MT4</h1>
-      <p>Không công cụ nào tự đặt, sửa hay đóng lệnh. Luôn chạy thử trên tài khoản demo trước.</p>
+      <p>
+        Chỉ EA <code>ZO_Analyst</code> đặt lệnh: mặc định nó tự đặt và quản lý lệnh trên tài khoản <b>demo</b>, còn trên tài
+        khoản thật chỉ báo tín hiệu. Các công cụ khác không đặt, sửa hay đóng lệnh. Luôn chạy thử trên demo trước.
+      </p>
 
       <div className="download">
         <div>
@@ -65,7 +72,8 @@ export default function ToolsPage() {
           Kéo <b>ZO_View</b> vào chart bạn hay nhìn.
         </li>
         <li>
-          <b>Tools → Options → Expert Advisors</b> → tick <b>Allow WebRequest</b> → thêm <code>https://api.telegram.org</code>.
+          <b>Tools → Options → Expert Advisors</b> → tick <b>Allow WebRequest</b> → thêm <code>https://api.telegram.org</code> và{' '}
+          <code>https://nfs.faireconomy.media</code> (lịch tin).
         </li>
         <li>
           Kéo <b>ZO_Analyst</b> vào 1 chart → tab Inputs điền <code>InpTelegramToken</code> và <code>InpTelegramChatId</code>{' '}

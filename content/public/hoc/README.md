@@ -17,6 +17,10 @@ Thư mục này tổng hợp **toàn bộ** lịch sử kênh Discord ZO (80.928
 | 5 | [05-bo-quy-tac.md](05-bo-quy-tac.md) | Bộ quy tắc giao dịch — mỗi quy tắc kèm **bản chất** (vì sao đúng) và **dẫn chứng** | Trước mỗi phiên |
 | 6 | [06-danh-sach-case-lp.md](06-danh-sach-case-lp.md) | Liệt kê mọi tình huống LP có thể gặp — **bạn điền cách xử lý** → dùng để backtest sau | Để bạn tự quyết |
 | 7 | [07-tam-ly-quan-ly-von.md](07-tam-ly-quan-ly-von.md) | Tâm lý, plan T, quản lý lot/BE, lỗi hay gặp (FOMO, cản tàu, không dám vào) | Khi đang thua / đang FOMO |
+| 8 | [08-danh-muc-case-vao-lenh.md](08-danh-muc-case-vao-lenh.md) | Danh mục tình huống giá so với LP trên khung H4 → M15, kèm đề xuất xử lý | Khi soạn luật riêng |
+| 9 | [09-ban-chat-nen-zo.md](09-ban-chat-nen-zo.md) | Nến ZOS được tính thế nào, râu = lực kéo, thân = áp lực, màu = trạng thái | Trước khi đọc bộ quy tắc ZEAR2 |
+| 10 | [10-bo-quy-tac-zear2.md](10-bo-quy-tac-zear2.md) | **Bộ quy tắc đang dùng thật** (hệ ZEAR2): bias, LP, ba kiểu vào lệnh, khi nào không vào, SL / TP, quản lý — kèm cơ sở backtest | Mỗi ngày, trước khi vào lệnh |
+| 11 | [11-ket-qua-nghien-cuu-backtest.md](11-ket-qua-nghien-cuu-backtest.md) | Tổng kết hơn 30 vòng backtest: cái gì có tác dụng, cái gì không | Khi muốn đổi luật |
 
 ## Ký hiệu dùng trong tài liệu
 
@@ -31,7 +35,7 @@ Thư mục này tổng hợp **toàn bộ** lịch sử kênh Discord ZO (80.928
 | **BBR** | Build → Break → Retest |
 | **SHs** | Stop-loss Hunts — săn dừng lỗ |
 | **SW** | Sideway — đi ngang |
-| **RN** | Round Number — số tròn (1.1000, 1.1050…) |
+| **RN** | Round Number — số tròn; theo ZO là các mức cách nhau 25 pip (…00, …25, …50, …75) |
 | **EP** | Entry Point — điểm vào lệnh |
 | **BE** | Break-even — dời SL về giá vào |
 | **HRW / LGD…** | High của R khung W / Low của G khung D … |

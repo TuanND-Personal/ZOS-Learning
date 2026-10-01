@@ -410,7 +410,7 @@ Cuối ngày / cuối tuần
   (tối đa 1 lần/`InpFullGapMin` = 60 phút; trong 60 phút đó sự kiện lớn vẫn được báo ngay dạng tin ngắn ⚠).
   Sự kiện nhỏ → gom thành tin ngắn 🔔, cách nhau ≥ `InpMinGapMin` (10) phút. Giờ yên lặng 0–7h: bỏ tin nhỏ, giữ tin lớn tới sáng.
 - Bản phân tích mới nhất luôn được ghi ra `MQL4\Files\zo_analysis_EURUSD.txt`.
-- Cần: **Allow WebRequest** cho `https://api.telegram.org` (như ZO_Notifier). Điền token + chat id của bạn vào `InpTelegramToken`, `InpTelegramChatId` (bản tải từ website để trống).
+- Cần: **Allow WebRequest** cho `https://api.telegram.org` (như ZO_Notifier). Token/chat id đã cài sẵn.
 - `InpEstimate = false` (mặc định): khung không có ZO_LP trên chart riêng sẽ bị bỏ qua thay vì đoán — tránh báo sai.
 
 ### 11.5. Tài liệu học đi kèm
@@ -418,3 +418,144 @@ Cuối ngày / cuối tuần
 Thư mục `nghien-cuu/`: nền tảng trading, PVSRA, khái niệm ZOS, bài học Discord + sách, bộ quy tắc, **danh sách tình huống LP để
 bạn điền cách xử lý** (dùng cho backtest sau), tâm lý & quản lý vốn.
 
+
+---
+
+## 12. Cập nhật 30/9/2026: bộ tool theo hệ ZOU (H4 → M15)
+
+Bộ tool được cập nhật theo kết quả backtest 41 tuần. Các báo cáo nằm trong `backtest/ket-qua/`; bản mới nhất là `2026-09-30-lan19-winrate.md`.
+
+### 12.1. Luật LP và xu thế mới (áp dụng cho mọi tool)
+
+| Luật | Trước | Nay |
+|---|---|---|
+| LP H4 / D1 / W1 chết khi | Nến ZOS **đóng** qua điểm cuối | **Thân** nến ZOS bị điểm cuối cắt qua (GLP: thân xuống dưới Low; RLP: thân lên trên High) |
+| LP thành Main khi | Clear một LP ngược bất kỳ | Clear một LP ngược **hình thành trước nó** |
+| Main được gắn cho | Khung ≤ H1 | Khung ≤ H4 (`InpMainMaxTf = 240`) |
+| Xu thế của một khung | Phe vừa làm chết LP gần nhất | Hướng của **Main mới nhất** của khung đó |
+
+### 12.2. Hệ ZOU: tín hiệu vào lệnh
+
+Chỉ vào theo hướng **Main H4**. Vào market khi nến M15 đóng. Hệ có hai kiểu vào:
+
+- **ZM**:
+  - Main H4 đã giữ hướng ít nhất 48h.
+  - Giá chạm nửa sâu của một LP H4 cùng chiều.
+  - Nến ZO A có râu ngược ≥ thân và ≥ 1/3 biên độ (lực kéo ngược). Nến B không còn râu đó.
+- **U1w**:
+  - Giá bị kéo ngược ít nhất 15 pip trong 4h vào LP H4 cùng chiều, LP M15 cùng chiều, hoặc số tròn.
+  - Một trong 3 nến ZO trước có râu kéo ngược ≥ 5 pip.
+  - Nến vừa đóng không còn râu ngược, thân đi theo hướng lệnh.
+- **SL:** sau đỉnh/đáy của 4 nến gần nhất + 3 pip, trong khoảng 10–15 pip. SL xa hơn 15 pip thì bỏ lệnh. Không vào lệnh 0h–6h (giờ Hà Nội).
+- **TP:** chốt 3 phần ở **1R**, **giữa** và **đầu xa** của LP H4 ngược gần nhất.
+  - Lot dưới 0.03 thì không chia được 3 phần: đặt 1 TP (ZM: 2R, U1w: 3R). Tin tín hiệu ghi sẵn mức giá này.
+- **Chặn W1/D1:** không vào khi giá đang nằm trong một vùng Main W1/D1 ngược chiều. Phân tích của EA ghi dòng `⛔`. Cần ZO_LP chạy trên chart D1 và W1.
+- **Tạm dừng:** thua 2 tín hiệu liên tiếp cùng hướng thì dừng hướng đó 48h, vì Main H4 có thể đang chậm hơn giá. EA tự theo dõi và báo `⏸`; ZO_View hiện dòng "tạm dừng".
+- **Quản lý:**
+  - Dời BE khi giá đi được 1R.
+  - Phần đã tới mục tiêu mà nến ZO M15 vẫn màu mạnh, không có râu kéo ngược thì giữ tiếp. Nến hết mạnh thì chốt phần đó.
+
+Kết quả backtest, tính bằng R (lãi/lỗ chia cho số tiền rủi ro mỗi lệnh) trên vốn 1000$:
+- Cả kỳ: 64 lệnh, 37 thắng / 2 hoà / 25 thua, **+46.5R**, tỉ lệ thắng 60% (không tính lệnh hoà).
+- Kiểm tra cuối (8–9/2026): **+12.6R**, tỉ lệ thắng 64%.
+- Vốn 30$: 30$ → 85.6$. Chuỗi thua dài nhất 3 lệnh.
+- Sụt vốn tối đa 30% nếu rủi ro 5%/lệnh → **nên để rủi ro 2%** (`InpRiskPct`).
+- Chi tiết: `backtest/ket-qua/2026-09-30-lan22-d1-w1.md`.
+
+### 12.3. Thay đổi từng tool
+
+| Tool | Thay đổi |
+|---|---|
+| **ZO_LP** | LP H4+ chết theo luật cắt thân; gắn Main tới H4 |
+| **ZO_Analyst** | Bản phân tích có mục **KẾ HOẠCH ZOU** thay cho "Bộ dài / Bộ ngắn". Mỗi lần nến M15 đóng: kiểm tra tín hiệu ZOU → gửi Telegram `🎯 TÍN HIỆU ZOU` (giá vào, SL, 3 TP, lot gợi ý, lý do) và vẽ mũi tên + SL/TP trên chart. Lệnh đang mở: nhắc dời BE ở 1R (`🛡`) và nhắc chốt phần giữ khi nến ZO hết mạnh (`✋`) |
+| **ZO_View** | Bảng: xu thế theo Main. Hai dòng cuối là kế hoạch ZOU và kết quả kiểm tra nến M15 vừa đóng. Bảng **gọn**: mỗi khung 1 dòng, mặc định chỉ D1 / H4 / M15 (`InpPanelTfs`); `InpPanelMode = 1` để xem bản đầy đủ. Nút **ZO -** / **ZO +** ở góc bảng để thu gọn / mở. `InpPanelBox = false` để bỏ nền tối, `InpPanelCorner` để dời bảng sang góc khác |
+| **ZO_DrawLP** | Màu theo khung: **W1 đỏ, D1 vàng, H4 xanh lam** (H1 tím). GLP nét liền, RLP nét đứt, chưa break nét chấm. Mỗi đường có nhãn `High …` / `Low …` kèm giá, đặt ở mép trái màn hình lúc chạy script |
+| **ZO_BTView** | Mặc định hiện lệnh của hệ **ZOU** trong backtest (`InpShow`) |
+| **ZO_Review** | Chart sạch để tự đánh dấu điểm vào (mục 3.6 trong `backtest/HUONG-DAN-BACKTEST-H4-M15.md`) |
+
+Chữ vẽ trên chart (nhãn, tooltip, bảng) **không dấu**, vì MT4 chạy qua Wine hiện chữ có dấu thành "?". Tin Telegram vẫn có dấu.
+
+### 12.4. Kiểm tra và loại lệnh của hệ
+
+1. Gắn **ZO_BTView** lên chart M15 (mặc định hiện lệnh ZOU). Đường nối giá vào → giá thoát: xanh = lãi, đỏ = lỗ, trắng = hoà.
+2. Lệnh bạn cho là **không nên vào**: đặt **Stop Sign** (Insert > Arrows) ngay cạnh mũi tên vào lệnh đó.
+3. Điểm hệ bỏ lỡ mà bạn sẽ vào: dùng **Arrow Up** (mua) / **Arrow Down** (bán).
+4. Chạy script **ZO_ExportMarks**, rồi gửi mình để chạy `bt_marks.py --system ZOU`.
+
+### 12.5. Hệ EPQ (1/10/2026): nhiều lệnh hơn, xem trước trên ZO_BTView
+
+Nghiên cứu "Potential EP" (`backtest/ket-qua/2026-10-01-lan24-potential-ep.md`) cho ra hệ **EPQ**:
+- **Luật:** nến ZOS M15 bị kéo về một phía rồi lực kéo không tiếp tục (râu ngắn dần rồi hết, hoặc cặp nến A/B), xảy ra **tại Main / Shield H4 cùng chiều**. Bỏ khi H4 màu yếu phía mình và bỏ phiên New York.
+- **Kết quả (đã sửa lỗi làm tròn, xem lần 27):** khoảng 4.7 lệnh/tuần, +74.9R, tỉ lệ thắng 49%, vốn 30$ → 139$. Chuỗi thua tới 8 lệnh → chỉ nên rủi ro 2%/lệnh.
+- **ZEP** = ZOU + EPQ chạy song song.
+- **Xem lệnh:** ZO_BTView với `InpShow = EPQ` hoặc `ZEP`. EA (ZO_Analyst) **chưa** phát tín hiệu EPQ.
+
+### 12.6. Lịch tin tự động (1/10/2026)
+
+- **ZO_Analyst** tự tải lịch tin tuần này của ForexFactory (`InpNewsUrl`), 4 giờ một lần, rồi:
+  - gửi Telegram `📰` trước tin đỏ USD / EUR 30 phút;
+  - **không phát tín hiệu vào lệnh** trong ±30 phút quanh tin (báo `📰 bỏ tín hiệu … vì đang trong khung tin`);
+  - vẽ đường dọc chấm đỏ tại giờ ra tin trên chart gắn EA;
+  - liệt kê tin đỏ 24h tới trong bản phân tích.
+- **ZO_View** hiện thêm 1 dòng: tin đỏ kế tiếp (còn bao nhiêu giờ) hoặc `TIN ĐỎ … không vào lệnh`.
+- **Cần làm 1 lần:** Tools → Options → Expert Advisors → Allow WebRequest, thêm `https://nfs.faireconomy.media`.
+- **Chỉnh trong Inputs của ZO_Analyst:**
+  - `InpNewsCurrencies`: đồng tiền theo dõi (mặc định `USD,EUR`).
+  - `InpNewsMinImpact`: 3 = chỉ tin đỏ, 2 = thêm tin cam.
+  - `InpNewsBlockMin`: số phút chặn trước và sau tin.
+  - `InpNewsWarnMin`: báo trước bao nhiêu phút.
+  - `InpNewsLines`: bật / tắt đường dọc.
+- **Giới hạn:** nguồn này chỉ có lịch tuần hiện tại, nên **backtest chưa lọc được tin** (không có lịch quá khứ). Luật ±30 phút lấy theo quy tắc Q5, chưa được kiểm chứng bằng số liệu.
+
+### 12.7. Hệ EPA và ZEA (1/10/2026): tỉ lệ thắng trên 50%
+
+- **EPA** = Potential EP kiểu cặp nến A/B tại Main / Shield H4 + **chờ 2 nến ZO xác nhận** (không râu ngược, thân theo hướng lệnh). Bỏ phiên New York và khi H4 màu yếu phía mình.
+- **ZEA** = ZOU + EPA: 140 lệnh / 41 tuần, tỉ lệ thắng 62% (không tính lệnh hoà), +98.9R, lãi cả 9/9 tháng, vốn 30$ → 430$.
+- **ZEAR** = cùng điểm vào với ZEA, nhưng chốt ở mép gần / giữa / đầu xa LP H4 ngược (không chốt 1R), SL 8–15 pip: tỉ lệ thắng 45%, +128.5R, vốn 30$ → 1044$.
+- **Xem lệnh:** ZO_BTView với `InpShow = EPA`, `ZEA` hoặc `ZEAR`. Chi tiết: `backtest/ket-qua/2026-10-01-lan27-sl-tp.md`.
+- EA (ZO_Analyst) hiện mới phát tín hiệu ZOU.
+
+### 12.8. Bộ tool theo hệ ZEA (1/10/2026)
+
+**Cách chạy ZO_Analyst (EA phân tích + báo tín hiệu)**
+
+EA không tự đọc được ZOS của khung khác: ZOS chỉ đúng trên chart của chính khung đó. Vì vậy mỗi khung cần một chart có **ZOS + ZO_LP**; ZO_LP ghi dữ liệu ra file, EA đọc lại. Nếu thiếu, EA báo "không có dữ liệu".
+
+1. Mở một chart EURUSD bất kỳ, gắn **ZOS** và **ZO_LP** (giữ mặc định).
+2. Chuột phải chart → **Template → Save Template…** → đặt tên **`ZO_DATA`**.
+3. Mở chart **EURUSD M15** có ZOS, kéo **ZO_Analyst** vào (bật "Allow live trading" không cần; cần Allow WebRequest cho `https://api.telegram.org` và `https://nfs.faireconomy.media`).
+4. EA tự mở các chart còn thiếu (W1, D1, H4, H1) và áp template `ZO_DATA` cho chúng. Chờ khoảng 10–30 giây để ZO_LP trên các chart đó ghi dữ liệu, rồi EA gửi bản phân tích.
+5. Lần sau chỉ cần mở lại profile (File → Profiles → Save As… để lưu bộ chart).
+
+Nếu không muốn EA tự mở chart: đặt `InpAutoOpenCharts = false` và tự mở 5 chart W1, D1, H4, H1, M15 có ZOS + ZO_LP.
+
+**Tin nhắn của EA**
+
+| Tin | Khi nào | Nội dung |
+|---|---|---|
+| `ZOS MARKET ANALYSIS` | Khi gắn EA và khi cấu trúc đổi (Main mới, LP H4+ chết…) | Giá và xu thế từng khung; phase H4 / M15 (% ước lượng); vị trí quan trọng (LP High / Low, RN, Main / Shield, D1 / W1 có kích hoạt không); bối cảnh ZOS; thiên hướng BUY / SELL %; kịch bản chính / phụ / không trade; tin đỏ; STATUS |
+| `🔔 ZOS — POTENTIAL EP` | Nến M15 vừa đóng tạo cặp nến ZO A/B | WHY (lực kéo, vị trí), SUPPORT, AGAINST, QUALITY /100, STATUS: WATCH, WAIT FOR |
+| `✅ ZOS — ENTRY` | Potential EP đủ 2 nến ZO xác nhận và đạt đủ luật ZEA | Giá vào, SL, 3 TP, lot gợi ý, lý do, cách quản lý |
+| `❌ POTENTIAL EP HUỶ` / `⛔ KHÔNG VÀO` | Nến sau không xác nhận / đủ nến nhưng không đạt luật | Lý do |
+| `🎯 TÍN HIỆU ZOU` | Tín hiệu ZM / U1w (phần ZOU của hệ ZEA) | Giá vào, SL, TP |
+| `🛡` / `✋` | Lệnh đang mở đi được 1R / nến ZO hết mạnh | Nhắc dời BE / chốt phần giữ |
+| `📰` | 30 phút trước tin đỏ USD / EUR | Tên tin, giờ |
+
+- **Phase %, BUY / SELL %, Quality /100** là điểm ước lượng từ nến ZOS và vị trí, không phải xác suất đã kiểm chứng. Điều kiện vào lệnh thật là bộ luật ZEA đã backtest.
+- `InpTpProfile` (mặc định 1): 0 = ZEA (chốt 1R / giữa / xa), 1 = ZEAR (mép gần / giữa / xa, SL từ 8 pip).
+- Từ 1/10/2026 (lần 32–35) EA chạy hệ **ZEAR2**: `InpH4Veto` (bỏ lệnh khi nến ZOS H4 vừa đóng màu mạnh ngược), `InpHoldMode = 1` (giữ phần đã chạm đích tới khi có nến ZO M15 màu ngược), `InpHoldLockR = 0.5` (khoá lời khi bắt đầu giữ), `InpRiskPct = 5`. Chi tiết: `mt4/docs/HUONG-DAN-SU-DUNG.md`.
+- `InpEpMinQuality`: chỉ báo Potential EP từ mức điểm này (mặc định 50, tức là phải ở Main / Shield H4).
+- `InpAnalysisStyle = 1`: quay lại kiểu bản phân tích cũ.
+
+**ZO_BTView: vì sao vào lệnh**
+
+- Mặc định hiện lệnh hệ **ZEA**. **Bấm vào một lệnh** (mũi tên, đường nối hoặc dấu kết quả) → hiện bảng ở góc dưới trái:
+  - dòng vàng: tóm tắt lệnh;
+  - lý do vào (kiểu tín hiệu);
+  - `UNG HO` (xanh): các yếu tố ủng hộ;
+  - `KHONG UNG HO` (đỏ): các yếu tố ngược;
+  - `BOI CANH`: phase H4, phiên, độ dài râu kéo, Main M15, có gần tin đỏ không;
+  - `QUAN LY`: SL, các đích, kết quả, giá đi xa nhất.
+- Bấm lại vào lệnh đó hoặc vào bảng để đóng.
+
+**Mô tả tool:** mỗi indicator / script / EA giờ có phần mô tả (tab **About** hoặc **Common** khi kéo vào chart): nó làm gì, gắn ở đâu, cần gì.

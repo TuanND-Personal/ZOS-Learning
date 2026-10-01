@@ -7,8 +7,16 @@
 | `MQL4/Scripts/ZOS_Probe.mq4` | script | Xuất các buffer của ZOS ra CSV (xem `zos-buffers.md`) |
 | `MQL4/Indicators/ZO_LP.mq4` | indicator | Tìm LP từ nến Build của ZOS, theo dõi trạng thái, cảnh báo |
 | `MQL4/Experts/ZO_Notifier.mq4` | EA | Gửi cảnh báo của ZO_LP tới Telegram / Discord |
+| `MQL4/Indicators/ZO_View.mq4` | indicator | Hộp LP khung chart, nến đáng chú ý, bảng phân tích + kế hoạch ZOU |
+| `MQL4/Scripts/ZO_DrawLP.mq4` | script | Vẽ LP W1 / D1 / H4 (đỏ / vàng / xanh lam) bằng cặp đường High / Low |
+| `MQL4/Experts/ZO_Analyst.mq4` | EA | Phân tích, tín hiệu hệ ZEAR2, nhắc BE / chốt phần giữ, gửi Telegram; tự đặt lệnh trên tài khoản demo |
+| `MQL4/Indicators/ZO_BTView.mq4` | indicator | Hiện lệnh backtest (mặc định hệ ZEAR2) từ `zo_bt_overlay_<cặp>.csv`; bấm vào lệnh để xem lý do |
+| `MQL4/Indicators/ZO_Wick.mq4` | indicator | Đánh dấu nến ZOS râu dài và nến hết râu, để kiểm tra máy nhận diện |
+| `MQL4/Indicators/ZO_Review.mq4` | indicator | Chart sạch (LP H4 / D1 / W1 dạng đường, LP M15 dạng hộp) để tự đánh dấu điểm vào |
+| `MQL4/Scripts/ZO_ExportMarks.mq4` | script | Xuất các mũi tên bạn đánh dấu ra `zo_marks_<cặp>.csv` |
+| `MQL4/Include/ZO/ZoCore.mqh` | include | Logic LP dùng chung + tín hiệu ZOU (`ZoCheckZOU`) |
 
-Không file nào đặt lệnh.
+Chỉ `ZO_Analyst` đặt lệnh: mặc định tự đặt trên tài khoản demo, tài khoản thật chỉ báo tín hiệu (`InpAllowRealAccount`). Hướng dẫn sử dụng: `mt4/docs/HUONG-DAN-SU-DUNG.md`.
 
 ## Compile (Linux, Wine)
 
