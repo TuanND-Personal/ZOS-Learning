@@ -153,6 +153,8 @@ Kiểm tra mỗi khi một nến M15 đóng. Vào market ở giá đóng nến �
 5. **Giờ:** không vào 0h–6h và 19h–24h (phiên New York).
 6. Cùng hướng cách nhau ít nhất 4 giờ.
 
+**Từ 2/10/2026 (lần 52):** vị trí của EPA được nới thành *mọi GLP / RLP H4 cùng chiều còn sống* trong phạm vi 10 pip quanh đầu râu (input `InpEpAnyH4Lp`, backtest `ep_loc = "h4any"`, hệ `ZEAR2L`). Danh mục 3 năm: 439 lệnh, +195R so với 377 lệnh, +125R khi chỉ nhận Main / Shield; sụt lớn nhất 43R so với 33R. ZM vẫn chỉ vào ở Main / Shield (nới ZM làm mất R).
+
 EPA không yêu cầu thuận xu thế Main H4 hiện tại. Lý do nằm ở nghiên cứu lần 24: vị trí tại Main / Shield là yếu tố ổn định nhất, còn hướng Main H4 thì không.
 
 ### 6.4. Các bộ chặn
@@ -263,6 +265,8 @@ Là bảng kiểm các luật của EPA:
 | Điều kiện đạt | Điểm |
 |---|---|
 | Đầu râu ở Main / Shield H4 cùng chiều | 35 |
+| Đầu râu ở GLP / RLP H4 cùng chiều thường (khi `InpEpAnyH4Lp` bật, từ 2/10/2026) | 30 |
+| Mỗi case nên tránh: sai phía biên độ 5 ngày, đợt trước < 20 pip, đầu râu trong LP M15 ngược, retest LP H4 vừa bị phá | −10 |
 | Kiểu cặp nến A/B | 15 |
 | H4 không màu yếu phía mình | 10 |
 | Phiên Á hoặc London | 10 |
@@ -270,7 +274,7 @@ Là bảng kiểm các luật của EPA:
 | Không gần tin đỏ | 5 |
 | Mỗi nến xác nhận đã có (tối đa 2) | 10 |
 
-100 điểm = đủ mọi luật → `ENTRY`. EA chỉ báo `POTENTIAL EP` khi điểm ≥ `InpEpMinQuality` (mặc định 50, nghĩa là bắt buộc ở Main / Shield).
+100 điểm = đủ mọi luật → `ENTRY`. EA chỉ báo `POTENTIAL EP` khi điểm ≥ `InpEpMinQuality` (mặc định 50, nghĩa là bắt buộc ở một LP H4 cùng chiều: Main, Shield, hoặc GLP / RLP thường khi `InpEpAnyH4Lp` bật).
 
 ---
 

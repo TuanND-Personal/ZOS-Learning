@@ -6,6 +6,36 @@ không phải thử lại những thứ đã thử. Bộ luật cuối cùng n�
 > Mọi con số là backtest trên một cặp tiền, 41 tuần, và các luật được chọn trên chính dữ liệu đó. Hãy đọc chúng như
 > "hướng nào tốt hơn hướng nào".
 
+> **Cập nhật 2/10/2026 — đọc mục 0 trước.** Sau khi có 3 năm dữ liệu (7/2023 → 10/2026), các con số 41 tuần ở dưới
+> **không lặp lại được** trên phần dữ liệu chưa từng dùng để chỉnh luật. Phần còn lại của trang được giữ nguyên làm lịch sử.
+
+## 0. Kết quả trên 3 năm dữ liệu (cập nhật 2/10/2026)
+
+Dữ liệu M15 12/7/2023 → 1/10/2026 (80 000 nến). "Chưa thấy" = trước 19/12/2025, phần ZEAR2 chưa từng được chỉnh trên đó.
+Chạy danh mục thật: tối đa 2 lệnh, nghỉ sau 2 lệnh thua, rào Main D/W, rào nến H4.
+
+| Hệ | Lệnh | Lệnh/tuần | Lãi / hoà / lỗ | Tổng R | R/lệnh | Chưa thấy: R/lệnh | Sụt R lớn nhất |
+|---|---|---|---|---|---|---|---|
+| ZEAR2 (như mục 1) | 377 | 2.2 | 23% / 29% / 48% | +125R | +0.33 | +0.09 | 33R |
+| **ZEAR2L** = ZEAR2 với EPA nhận mọi LP H4 cùng chiều (đang chạy trong EA) | 439 | 2.6 | 22% / 28% / 49% | +195R | +0.44 | +0.23 | 43R |
+
+Những điều rút ra từ các vòng nghiên cứu 35–52 (báo cáo trong `backtest/ket-qua/`):
+
+- **Không kiểu vào lệnh nào đoán hướng tốt hơn may rủi.** Chốt cứng 1R thì mọi hệ thắng 44–52%. Phần dương của họ ZEA đến từ
+  cách thoát: đích ở LP H4 ngược và giữ lệnh theo màu nến, tức ăn ít lệnh chạy xa. Với ZEAR2 gốc, 10 lệnh thắng lớn nhất trong
+  3 năm cho hơn toàn bộ lợi nhuận.
+- **Xu thế theo Main H4, pha H4, màu nến H4, vị trí trong LP D/W không đoán được hướng** của 4 giờ, 24 giờ hay 3 ngày tiếp theo
+  (8 872 nến H4 từ 2021: đúng hướng 47–53%).
+- **Đã thử và không có lợi thế ổn định:** râu dài, râu ngắn dần, cụm nến cạn lực, test lại mũi râu, nến Build, đổi màu, chấm
+  điểm 46–85 tiêu chí (kể cả trọng số theo pha / phiên), các case theo chế độ thị trường, các luật ICT / EMA / RSI.
+- **Đứng vững ở cả ba giai đoạn (dùng làm bộ lọc):** không vào khi nến ZOS H4 vừa đóng màu mạnh ngược; không mua ở 20% đầu
+  đắt / bán ở 20% đầu rẻ của biên độ 5 ngày; không vào khi đợt chạy trước đó < 20 pip; không vào trong LP M15 ngược chiều hoặc
+  ngay tại LP H4 vừa bị phá; đầu râu phải nằm ở một LP H4 cùng chiều (không ở LP nào: −0.28R/lệnh).
+- **Sụt 33–43R** nghĩa là rủi ro 5%/lệnh sẽ cháy tài khoản; chỉ nên 1%/lệnh trên demo.
+- Bảng so sánh 37 hệ: `backtest/ket-qua/2026-10-02-lan50-so-sanh-tat-ca-cac-he.md`.
+
+---
+
 **Cách đo:** chạy từng nến M15 theo thứ tự thời gian; chỉ dùng thông tin đã có lúc nến đóng; vào ở giá đóng nến cộng
 1 pip spread; nến chạm cả SL và TP tính là thua. **R** = lãi hoặc lỗ chia cho số tiền rủi ro của lệnh. Tỉ lệ thắng
 không tính lệnh hoà. Vốn 1000$, rủi ro 5%/lệnh, tối đa 2 lệnh mở.

@@ -17,6 +17,7 @@ Cách các tool tính toán: xem file `GIAI-THICH-THUAT-TOAN.md`.
 | **ZO_View** | Indicator | Hộp LP của khung đang xem, nến đáng chú ý, bảng tóm tắt | Chart bạn hay nhìn |
 | **ZO_DrawLP** | Script | Vẽ một lần các LP W1 / D1 / H4 dạng đường có nhãn | Kéo vào chart khi cần |
 | **ZO_BTView** | Indicator | Xem lại lệnh backtest, bấm vào lệnh để biết vì sao vào | Chart M15 riêng |
+| **ZO_RunStart** | Indicator | Khoanh các điểm **bắt đầu đợt chạy** trong quá khứ, bấm vào để xem giải thích | Chart M15 (hoặc H4) có ZOS |
 | **ZO_Review** | Indicator | Chart sạch để tự đánh dấu điểm vào | Chart M15 riêng |
 | **ZO_Wick** | Indicator | Kiểm tra máy nhận diện "nến râu dài" có đúng ý bạn không | Chart M15 có ZOS |
 | **ZO_ExportMarks** | Script | Xuất các mũi tên bạn tự đánh dấu ra file | Chạy trên chart đã đánh dấu |
@@ -41,11 +42,11 @@ Làm một lần. Cần MT4 đã đăng nhập tài khoản và đã có indicat
 
 | File trong gói | Nằm ở đâu trong Data Folder |
 |---|---|
-| `ZO_LP`, `ZO_View`, `ZO_BTView`, `ZO_Review`, `ZO_Wick` (`.ex4` và `.mq4`) | `MQL4\Indicators` |
+| `ZO_LP`, `ZO_View`, `ZO_BTView`, `ZO_RunStart`, `ZO_Review`, `ZO_Wick` (`.ex4` và `.mq4`) | `MQL4\Indicators` |
 | `ZO_Analyst`, `ZO_Notifier` | `MQL4\Experts` |
 | `ZO_DrawLP`, `ZO_ExportMarks`, `ZOS_Probe` | `MQL4\Scripts` |
 | `ZoCore.mqh` | `MQL4\Include\ZO` |
-| `zo_bt_overlay_EURUSD.csv` | `MQL4\Files` |
+| `zo_bt_overlay_EURUSD.csv`, `zo_runstart_EURUSD.csv` | `MQL4\Files` |
 
 4. Quay lại MT4. Mở cửa sổ **Navigator** (Ctrl+N) → chuột phải vào vùng trống → **Refresh**. Các tool hiện dưới mục *Indicators*, *Expert Advisors*, *Scripts*. Không thấy thì đóng MT4 rồi mở lại.
 
@@ -77,6 +78,7 @@ Chỉ cần file `.ex4` là chạy được. File `.mq4` là mã nguồn, để 
 3. Tool đang gắn trên chart vẫn giữ **thông số cũ**. Muốn nhận mặc định mới: gỡ ra rồi kéo vào lại, hoặc mở Inputs và bấm **Reset**.
 
 File `MQL4/Files/zo_bt_overlay_EURUSD.csv` là dữ liệu backtest để ZO_BTView, ZO_Review, ZO_Wick dùng.
+File `MQL4/Files/zo_runstart_EURUSD.csv` là dữ liệu của ZO_RunStart.
 
 ---
 
@@ -212,10 +214,38 @@ Cuối tuần
 - Nếu broker không cho đặt SL / TP cùng lúc mở lệnh, EA mở lệnh trước rồi đặt SL / TP sau. Nếu bước sau lỗi, EA gửi tin `⚠ … CHƯA đặt được SL / TP` — khi đó phải đặt tay ngay.
 - MT4 phải mở và có mạng. Tắt máy thì lệnh đang mở vẫn có SL / TP trên server, nhưng không được dời BE.
 
+### 5.2c. Lệnh bạn vào tay: EA báo Telegram, tự đặt SL / TP và dời BE
+
+Khi bạn tự mở một lệnh market trên cặp đang gắn EA (lệnh tay có magic = 0), trong vòng 5 giây EA sẽ:
+
+1. **Tính SL:** sau đáy (lệnh buy) / đỉnh (lệnh sell) của 16 nến M15 gần nhất, cộng 3 pip; không hẹp hơn 8 pip, không rộng hơn 20 pip.
+2. **Tính TP:** trước mép gần của **LP H4 cản phía trước** 2 pip, nếu chỗ đó cách ≥ 1.5R; không thì lấy 2R.
+3. **Đặt SL / TP vào lệnh** và gửi tin `✍️ LỆNH TAY`: giá vào, SL, TP kèm lý do, RR, rủi ro bằng tiền và % số dư (cảnh báo nếu vượt `InpRiskPct`), mức giá sẽ dời BE, và phần đọc chart theo ZO (`✅ Ủng hộ` / `⚠️ Không ủng hộ`).
+4. **Dời SL về giá vào** khi giá đi được 1R, gửi tin `🛡 LỆNH TAY`.
+5. Khi lệnh đóng: gửi kết quả theo pip, R và tiền.
+
+| Input | Mặc định | Ý nghĩa |
+|---|---|---|
+| `InpManualManage` | true | Bật / tắt cả phần này |
+| `InpManualKeepStops` | true | Bạn đã tự đặt SL hoặc TP thì EA **giữ nguyên**, chỉ điền cái còn thiếu |
+| `InpManualSwingBars` | 16 | Số nến M15 dùng để tìm đáy / đỉnh đặt SL |
+| `InpManualSlPadPips` | 3 | Đặt SL cách đáy / đỉnh đó bao nhiêu pip |
+| `InpManualSlMinPips` / `InpManualSlMaxPips` | 8 / 20 | SL hẹp nhất / rộng nhất |
+| `InpManualTpMinRR` | 1.5 | LP H4 cản phải cách ít nhất chừng này R mới dùng làm TP |
+| `InpManualTpFallbackR` | 2.0 | TP theo R khi không dùng được LP H4 |
+| `InpManualBeR` | 1.0 | Dời BE khi giá đi được chừng này R (0 = không dời) |
+
+- **Tài khoản thật:** EA chỉ gửi tin gợi ý SL / TP, **không sửa lệnh**, trừ khi bật `InpAllowRealAccount`.
+- Cần bật nút AutoTrading và tick **Allow live trading**; nếu không EA chỉ gửi gợi ý.
+- Lệnh tay đang mở sẵn lúc gắn EA cũng được xử lý như lệnh mới (SL / TP bạn đã đặt được giữ).
+- Số liệu chọn mặc định: báo cáo lần 38, mục 7. Theo số liệu đó **BE ở 1.5R cho kết quả tốt hơn BE ở 1R**; mặc định vẫn là 1R theo yêu cầu, đổi bằng `InpManualBeR`.
+- Phần này mới được kiểm tra bằng compile, **chưa chạy thật**. Thử trên demo trước.
+
 ### 5.3. ZO_View
 
 - **Thấy gì (mặc định, bản gọn):**
-  - Hộp LP của khung đang mở: GLP xanh, RLP đỏ, chưa break viền vàng, đã chạy viền xám. Main có viền dày và chữ MAIN. Mỗi phía 2 hộp gần giá nhất.
+  - Hộp LP của khung đang mở: GLP xanh, RLP đỏ, chưa break viền vàng, đã chạy viền xám. Main có viền dày và chữ MAIN. **Mặc định vẽ mọi LP còn sống** của khung đó (`InpPerSide = 0`); đặt `InpPerSide = 2` để chỉ còn 2 hộp gần giá nhất mỗi phía như bản cũ.
+  - **LP của khung lớn hơn** (H4, D1, W1) dạng hai đường High / Low có nhãn: H4 xanh lam, D1 vàng, W1 đỏ; GLP nét liền, RLP nét đứt, chưa break nét chấm. Nhãn ghi loại LP, ngày tạo và vai trò `[MAIN]`, `[shield]`, `[thuong]`, `[chua break]`. Vẽ **mọi** LP còn sống, kể cả GLP / RLP thường mà EA giờ dùng để vào lệnh. Tắt bằng `InpShowHtf = false`.
   - ★ ở nến tạo Main.
   - Bảng ở **góc phải trên** (để không đè lên ô đặt lệnh nhanh của MT4): mỗi khung một dòng (màu ZOS, xu thế Main, giá đang ở đâu), kế hoạch vào lệnh, tin đỏ kế tiếp.
 - **Các dấu đang tắt, bật lại nếu cần:**
@@ -234,7 +264,9 @@ Cuối tuần
 
 ### 5.5. ZO_BTView (xem lại backtest)
 
-- Gắn lên một chart M15 riêng. `InpShow` = tên hệ: `ZEAR2` (mặc định), `ZEA2`, `ZEAR`, `ZEA`, `ZEA3`, `ZOU`, `EPA`.
+- Gắn lên một chart M15 riêng. `InpShow` = tên hệ: `ZEAR2L` (mặc định: hệ EA đang chạy, EPA nhận mọi LP H4 cùng chiều) hoặc `ZEAR2` (bản chỉ Main / Shield). File dữ liệu hiện có 3 năm lệnh của hai hệ này (tạo bằng `backtest/rs_btview.py`).
+- **Chữ `EP` kèm số** = chỗ EA sẽ gửi tin `🔔 POTENTIAL EP`, số là điểm chất lượng. **Vàng** = sau đó EA không vào lệnh; **xanh ngọc** = sau đó EA vào lệnh (dấu BUY / SELL nằm ngay sau 2 nến). Bấm vào chữ `EP` để xem lý do, yếu tố ủng hộ / không ủng hộ và vì sao không vào. `InpWatchMinQuality` (mặc định 80, bằng `InpEpMinQuality` của EA) lọc theo điểm; đặt 50 để thấy mọi cảnh báo. `InpShowWatch = false` để ẩn. Chữ `EP` chỉ vẽ trong `InpDaysBack` ngày gần nhất (mặc định 30).
+- Điểm vào lệnh là **dấu BUY / SELL** của MT4 (không dùng ký hiệu font vì MT4 trên Wine hiện thành ô vuông).
 - Đường nối giá vào → giá thoát: **xanh = lãi, đỏ = lỗ, trắng = hoà**. Mũi tên B / S ở điểm vào, SL / TP là đoạn chấm mờ.
 - **Bấm vào một lệnh** → bảng góc trên phải (đổi góc bằng `InpNoteCorner`):
   - dòng vàng: tóm tắt lệnh;
@@ -244,6 +276,63 @@ Cuối tuần
   - `BOI CANH`: phase H4, phiên, râu kéo, Main M15, có gần tin đỏ không;
   - `QUAN LY`: SL, các đích, kết quả, giá đi xa nhất.
 - Bấm lại vào lệnh hoặc vào bảng để đóng.
+
+### 5.5b. ZO_RunStart (điểm bắt đầu đợt chạy)
+
+Dùng để **học bằng mắt**: máy nhìn lại quá khứ, tìm mọi điểm xoay M15 mà từ đó giá chạy ≥ 30 pip trước khi quay lại thủng nó.
+
+- Gắn lên chart M15 có ZOS (nên có thêm ZO_View hoặc ZO_BTView để thấy LP). Chart H4 cũng dùng được.
+- **Vạch ngang đậm màu xanh** tại mũi = bắt đầu đợt chạy lên, **cam** = đợt chạy xuống (không dùng ký hiệu font vì MT4 trên Wine hiện thành ô vuông). Vạch càng dày đợt chạy càng dài: **S** 30–60 pip, **M** 60–100, **L** ≥ 100. Chữ cạnh vòng = cỡ và số pip. Đường chấm mờ nối tới chỗ đợt chạy kết thúc (cú hồi 30 pip đầu tiên).
+- **Bấm vào một vòng tròn** → bảng giải thích:
+  - `VI TRI` (vàng): điểm nằm ở đâu so với LP M15 / H4 / D1 / W1, số tròn, đỉnh đáy ngày và tuần trước, còn trống bao nhiêu pip tới LP H4 cản;
+  - `QUA TRINH`: đợt chạy dẫn tới điểm (bao nhiêu pip, nhanh hay chậm, có xây LP không, dấu hiệu SHs);
+  - `NEN`: nến ZOS tại mũi (Build, nến 2 đầu, thu nến, râu kéo), nến xác nhận, volume;
+  - `BOI CANH`: Main H4, màu nến H4, pha H4, Main M15, phiên;
+  - `SAU DO` (xanh nhạt): chạy bao xa; sau mấy nến ZOS đổi màu mạnh và lúc đó giá đã đi bao nhiêu pip; LP M15 cùng chiều đầu tiên xuất hiện khi nào, có retest không;
+  - `DOC THEO ZO`: cách đọc theo kiến thức ZO và bài học tương ứng;
+  - `UNG HO` (xanh) / `KHONG UNG HO` (đỏ): các lý do.
+- Khi bấm, các **mốc tại điểm đó** được vẽ thành vạch vàng (mép LP, số tròn, đáy cũ bị quét, LP H4 cản phía trước), kèm vạch đứng ở **nến xác nhận** (từ đó máy mới biết đây là điểm xoay) và giá vào / SL thử.
+- Bấm lại vào điểm hoặc vào bảng để đóng.
+
+| Input | Mặc định | Ý nghĩa |
+|---|---|---|
+| `InpDaysBack` | 120 | Chỉ vẽ N ngày gần nhất (0 = toàn bộ 3 năm, nặng hơn) |
+| `InpMinRunPips` | 30 | Đợt chạy nhỏ nhất được vẽ. 60 = chỉ M và L (khoảng 6 điểm/tuần), 100 = chỉ L |
+| `InpTypes` | (trống) | Lọc theo cách đọc: `EDGE` (Low G / High R), `DEEP`, `FRESH`, `FLIP`, `SHS`, `CONT`, `CIVIL`, `WAVE_END`, `IN_LP`, `NONE` |
+| `InpShowFailed` | false | Vẽ thêm **điểm xoay hỏng** (chấm xám, bấm được) để so với điểm chạy |
+| `InpShowRuns` | true | Vẽ các vòng tròn điểm bắt đầu đợt chạy |
+| `InpMarkBest` | true | **Dấu BUY / SELL** (xanh ngọc = mua, hồng = bán) = điểm vào đề xuất cạnh mỗi điểm bắt đầu đợt chạy, chọn bằng cách nhìn lại: nến ngay trước hai nến chạy mạnh nhất trong 20 nến sau mũi. Bấm vào dấu mở bảng của đợt chạy (dòng `DIEM VAO DE XUAT`: nến thứ mấy, cách mũi bao nhiêu pip, SL, R tới hết đợt, hạng A / B / C). Xem báo cáo lần 48 |
+| `InpShowEntries` | true | Vẽ lệnh của luật chọn ở `InpRule` (dấu BUY / SELL xanh dương / cam, đường nối tới điểm thoát: xanh lá = lãi, trắng = hoà, đỏ = lỗ). Tắt để chỉ xem điểm bắt đầu đợt chạy và điểm vào đề xuất |
+| `InpEntryAfter` | 2 | Vào sau mấy nến kể từ nến mũi: 2 hoặc 3 (0 = vẽ cả hai) |
+
+| `InpRule` | 5 | Luật vẽ lệnh: **5 = chấm điểm học từ điểm vào đã đánh dấu (lần 49, mặc định; có từ 7/2024, SL < 13 pip)**, 4 = Hệ N (lần 47), 3 = chấm điểm mọi tiêu chí (lần 43), 1 = retest mũi râu (lần 40), 0 = mũi râu (lần 39), 2 = lần 39 + lần 40 |
+| `InpShowFillers` | true | Hệ N: hiện cả lệnh phụ (chỉ vào khi tuần chưa đủ 3 lệnh). Tắt = chỉ xem lệnh lõi |
+| `InpScoreTop` | 5 | Luật chấm điểm: giữ N% điểm cao nhất: 2 (1,9 lệnh/tuần, thắng 55%), 5 (4,4 lệnh/tuần, 51%) hoặc 10 (48%) |
+| `InpRetestWide` | false | Luật retest: lấy thêm dải 35–50% của biên độ 5 ngày (2,6 lệnh/tuần, thắng 55%; tắt = 1,0 lệnh/tuần, thắng 62%) |
+
+**Mũi tên điểm vào, Hệ N (lần 47, mặc định):** lệnh lõi = điểm vào của ZEAR2 (ZM, U1w, EPA) với rào nến H4 màu mạnh ngược, EPA không
+vào phiên New York, đợt trước ≥ 20 pip; lệnh phụ = 2 nến sau mũi trong LP H4 / D1 / W1 cùng chiều, chỉ khi tuần chưa đủ 3 lệnh. Thoát
+kiểu ZEAR2 (đích ở LP H4 ngược, BE ở 1R, giữ phần đã chạm đích tới khi nến M15 đổi màu), nên đường nối tới điểm thoát **xanh lá = lãi,
+trắng = hoà, đỏ = lỗ** và nhãn ghi kết quả bằng R; chỉ vẽ vạch SL. Dòng chữ góc trên trái cộng tổng R của đoạn đang vẽ. Cả 3 năm:
+660 lệnh (3,9 lệnh/tuần), +104R. Chi tiết: báo cáo lần 47.
+
+**Mũi tên điểm vào, luật chấm điểm (lần 43, `InpRule = 3`):** mỗi điểm vào (2–3 nến sau mũi, retest, hoặc cụm nến cạn lực) được cộng
+điểm theo 46 tiêu chí; trọng số của từng quý chỉ học từ dữ liệu trước quý đó. Bấm vào mũi tên: dòng `LUAT` ghi điểm và các ngưỡng,
+`UNG HO (cong diem)` / `KHONG UNG HO (tru diem)` liệt kê từng tiêu chí kèm số điểm. Chi tiết: báo cáo lần 43.
+
+**Mũi tên điểm vào, luật retest (lần 40, `InpRule = 1`):** (1) nến ZOS H4 vừa đóng mang **màu yếu của phe ngược** (hồng khi buy, xanh
+dương khi sell); (2) giá ở 35% đầu rẻ / đắt của biên độ 5 ngày; (3) trên M15 có nến râu kéo ≥ 5 pip tạo đáy / đỉnh (nến A), giá
+bật ≥ 8 pip rồi trong 3–20 nến quay lại vào vùng râu đó mà không thủng mũi quá 5 pip; (4) nến kế tiếp không tạo đáy / đỉnh mới →
+vào ở giá đóng nến đó. SL sau đáy / đỉnh thấp nhất 2 pip, ít nhất 7 pip; TP 1R. Bấm vào mũi tên: dòng `CHUOI` kể lại nến A, độ
+bật, số nến, kiểu retest; nến A được khoanh vàng. Chi tiết: báo cáo lần 40.
+
+**Mũi tên điểm vào (luật lần 39, `InpRule = 0`, không nhìn tương lai khi chọn):** nến mũi có râu kéo ZOS ≥ 10 pip **và dài ≥ 2 lần thân nến ZOS**, mũi nằm trong LP cùng chiều
+H4 / D1 / W1 (nửa sâu, điểm cuối, hoặc biên LP chưa màu) và ở 35% đầu rẻ / đắt của biên độ 5 ngày; vào ở giá đóng nến thứ 2
+(hoặc 3) sau mũi, SL sau mũi 2 pip nhưng không gần hơn 7 pip, TP 1R. Mặc định bỏ các lệnh mà nến vào còn màu mạnh của phe ngược (mua khi nến ZOS đỏ, bán khi xanh lá); đặt `InpSkipOppColor = false` để hiện lại. Mũi tên xanh dương = BUY, cam = SELL; đường nối tới điểm thoát **xanh lá = thắng,
+đỏ = thua**; hai vạch chấm xám là SL và TP. Bấm vào mũi tên để xem `LUAT`, `LENH`, `KET QUA` và phần đọc chart. Dòng chữ góc
+trên trái đếm số lệnh thắng / thua trong đoạn đang vẽ. Cả 3 năm, vào sau 2 nến: có lọc màu 149 lệnh (0,9 lệnh/tuần), thắng 59%; không lọc màu 373 lệnh (2,2 lệnh/tuần), thắng 55%.
+
+**Nhớ:** các điểm này được chọn bằng cách **nhìn tương lai**. Chúng cho biết đợt chạy bắt đầu ở đâu, không phải tín hiệu vào lệnh. Báo cáo lần 38 đo rằng chưa đặc điểm nào trong bảng giải thích tự nó tạo ra lợi nhuận.
 
 ### 5.6. ZO_Review + ZO_ExportMarks (tự đánh dấu)
 
@@ -273,6 +362,24 @@ Cuối tuần
 ---
 
 ## 6. Đọc tin nhắn của EA
+
+**Mức tin nhắn (`InpMsgLevel`, mặc định 1):**
+
+| Mức | EA gửi gì |
+|---|---|
+| **1** (mặc định) | Bản phân tích khi vừa gắn EA; `🔔 POTENTIAL EP` (WATCH); `✅ ENTRY`; `🎯 TÍN HIỆU ZOU`; mọi tin về lệnh (`🤖`, `🛡`, `✋`, `✍️ LỆNH TAY`, `⏸`); cảnh báo tin đỏ `📰` |
+| 2 | Như mức 1, thêm bản `ZOS MARKET ANALYSIS` khi cấu trúc lớn đổi (Main mới, LP H4 trở lên chết, mọi sự kiện D1 / W1), tối đa 1 lần / giờ |
+| 0 | Tất cả như trước đây: thêm tin `🔔` / `⚠` về từng sự kiện LP (LP mới, break, clear, retest, giá chạm LP H4+), các cảnh báo do ZO_LP trên từng chart gửi sang, `❌ POTENTIAL EP HUỶ`, `⛔ KHÔNG VÀO` |
+
+**Danh sách LP H4 trong tin nhắn:** bản `ZOS MARKET ANALYSIS` có mục `LP H4 còn sống` liệt kê tối đa 10 LP H4 gần giá nhất (▲ trên giá, ▼ dưới giá, ● giá ở trong), mỗi dòng ghi loại, ngày, vùng giá, vai trò `[Main]` / `[Shield]` / `[thường]` / `[chưa break]` và khoảng cách. Các tin `🔔 POTENTIAL EP`, `✅ ENTRY`, `🎯 TÍN HIỆU ZOU` kèm mục `LP H4` với 6 LP gần nhất. Kịch bản BUY / SELL trong bản phân tích cũng lấy LP H4 cùng chiều gần nhất bất kể vai trò.
+
+**`InpEpAnyH4Lp` (mặc định bật, lần 52):** EPA (Potential EP → ENTRY) nhận đầu râu tại **mọi GLP / RLP H4 cùng chiều còn sống**, không chỉ Main / Shield. Backtest danh mục 3 năm: 439 lệnh, +195R (bản chỉ Main / Shield: 377 lệnh, +125R), sụt lớn nhất 43R (33R). Tắt đi để về đúng ZEAR2 cũ. ZM và U1w không đổi.
+
+Tin `🔔 POTENTIAL EP` giờ có thêm mục **PLAN DỰ KIẾN** (đầu râu, SL, các đích nếu được xác nhận) và thêm các dòng AGAINST từ nghiên cứu
+lần 38 / 46: sai phía biên độ 5 ngày, đợt trước < 20 pip, đầu râu trong LP M15 ngược, retest LP H4 vừa bị phá. Mỗi dòng như vậy trừ 10 điểm
+chất lượng (tin chỉ gửi khi chất lượng ≥ `InpEpMinQuality`); luật vào lệnh của ZEAR2 không đổi.
+
+**Bao nhiêu tin `🔔 POTENTIAL EP` mỗi tuần** (đếm trên 3 năm dữ liệu, với `InpEpAnyH4Lp` bật): `InpEpMinQuality = 50` → khoảng 47 tin/tuần; 70 → 22; 75 → 13; **80 (mặc định mới) → khoảng 6 tin/tuần**. Điểm 80 nghĩa là mọi điều kiện kiểm tra lúc báo đều đạt (ở LP H4 cùng chiều, H4 không yếu màu phía mình, phiên Á / London, không trong LP D/W ngược, không dính case nên tránh). Chỉ 4–8% tin WATCH thành lệnh, vì còn phải chờ 2 nến xác nhận và qua các luật chặn. Xem từng chỗ trên chart bằng ZO_BTView.
 
 | Tin | Khi nào | Việc cần làm |
 |---|---|---|
@@ -342,7 +449,19 @@ python3 bt_lab.py --data $D --out ket-qua/bao-cao.md --trades-csv ket-qua/lenh.c
 
 # So các điểm bạn đánh dấu với hệ
 python3 bt_marks.py --data $D --system ZEA
+
+# Điểm bắt đầu đợt chạy: bảng điểm xoay -> báo cáo + file cho ZO_RunStart
+python3 rs_build.py r3_data.pkl rs_rows2.pkl 2      # điểm vào sau 2 nến (luật lần 39)
+python3 rs_retest.py r3_data.pkl rs_retest.pkl      # chuỗi retest mũi râu (luật lần 40)
+python3 rs_cluster.py r3_data.pkl rs_cluster.pkl    # điểm vào theo cụm nến (lần 42)
+python3 rs_score.py r3_data.pkl                     # chấm điểm cuốn chiếu (lần 43) -> rs_score_entries.tsv
+python3 rs_new.py r3_data.pkl --rebuild             # Hệ N (lần 47) -> rs_new_entries.tsv (cần r3_rows.pkl)
+python3 rs_build.py r3_data.pkl rs_rows.pkl
+python3 rs_report.py rs_rows.pkl $D ket-qua/bao-cao-diem-chay.md r3_data.pkl
 ```
+
+`r3_data.pkl` là dữ liệu đã nạp sẵn (nến + LP các khung); tạo lại bằng
+`python3 -c "import pickle, bt_strategies as S; pickle.dump(S.load('$D', 'EURUSD'), open('r3_data.pkl', 'wb'))"`.
 
 Cần các file `zos_probe_EURUSD_15_chart.csv`, `…_240_chart.csv`, `…_1440_chart.csv`, `…_10080_chart.csv` do ZOS_Probe xuất.
 
@@ -356,6 +475,8 @@ Cần các file `zos_probe_EURUSD_15_chart.csv`, `…_240_chart.csv`, `…_1440_
 | Không nhận tin Telegram | Chưa thêm `https://api.telegram.org` vào Allow WebRequest; nút AutoTrading đang tắt; xem tab Experts |
 | Không có cảnh báo tin, dòng "chưa tải được lịch tin" | Chưa thêm `https://nfs.faireconomy.media` vào Allow WebRequest |
 | Chữ trên chart hiện "?" | MT4 chạy qua Wine không hiện được dấu tiếng Việt. Các tool đã viết không dấu; nếu còn chỗ nào bị, báo lại |
+| ZO_RunStart không vẽ gì | Thiếu file `zo_runstart_EURUSD.csv` trong `MQL4\Files` (chạy `rs_report.py`), hoặc `InpDaysBack` quá ngắn |
+| Vào lệnh tay mà EA không đặt SL / TP | Chưa bật AutoTrading / Allow live trading, đang ở tài khoản thật, hoặc `InpManualManage = false`. Tin `✍️ LỆNH TAY` ghi rõ lý do |
 | ZO_BTView không vẽ gì | Thiếu file `zo_bt_overlay_EURUSD.csv` trong `MQL4\Files`, hoặc `InpShow` gõ sai tên hệ |
 | Bấm vào lệnh không hiện bảng | Bấm đúng vào mũi tên B / S hoặc dấu kết quả; file overlay cũ chưa có chú thích thì chạy lại `bt_lab.py` |
 | Không thấy vùng LP nào | ZOS chưa chạy trên chart, hoặc chưa đủ lịch sử: kéo chart về quá khứ vài lần rồi đổi khung qua lại |

@@ -10,6 +10,14 @@ và số liệu backtest).
 > dữ liệu đó. Kết quả thật gần như chắc chắn kém hơn. Chạy demo trước, và coi các con số là "luật nào tốt hơn luật
 > nào", không phải "sẽ lãi bao nhiêu".
 
+> **Cập nhật 2/10/2026:**
+> - Trên 3 năm dữ liệu (7/2023 → 10/2026) ZEAR2 cho +125R / 377 lệnh, nhưng trên phần chưa từng dùng để chỉnh luật chỉ
+>   **+0.09R/lệnh**; lãi đến từ vài lệnh chạy xa, chốt cứng 1R chỉ thắng khoảng 50%. Sụt lớn nhất 33R → rủi ro 5%/lệnh là quá
+>   cao, chỉ nên 1%. Chi tiết: [11, mục 0](11-ket-qua-nghien-cuu-backtest.md).
+> - **Luật vị trí của EPA đã nới:** đầu râu được nằm ở **mọi GLP / RLP H4 cùng chiều còn sống**, không chỉ Main / Shield
+>   (hệ `ZEAR2L`, input `InpEpAnyH4Lp` của EA): 439 lệnh, +195R, phần chưa thấy +0.23R/lệnh, sụt 43R. ZM vẫn chỉ vào ở
+>   Main / Shield.
+
 Cần biết trước: nến ZOS và màu nến ([09](09-ban-chat-nen-zo.md)), LP / Main / Shield ([03](03-zos-khai-niem.md)).
 
 ---
