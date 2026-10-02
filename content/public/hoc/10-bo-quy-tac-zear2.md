@@ -1,4 +1,4 @@
-# 10 — Bộ quy tắc vào lệnh của tôi (hệ ZEAR2, H4 → M15)
+# 10 — Bộ quy tắc vào lệnh của tôi (hệ chính ZO-FLEX, H4 → M15)
 
 Đây là bộ quy tắc **đang dùng thật**: EA `ZO_Analyst` chạy đúng các luật này. Nó là hệ tốt nhất sau hơn 30 vòng backtest
 trên EURUSD (19/12/2025 → 1/10/2026, 41 tuần).
@@ -14,9 +14,14 @@ và số liệu backtest).
 > - Trên 3 năm dữ liệu (7/2023 → 10/2026) ZEAR2 cho +125R / 377 lệnh, nhưng trên phần chưa từng dùng để chỉnh luật chỉ
 >   **+0.09R/lệnh**; lãi đến từ vài lệnh chạy xa, chốt cứng 1R chỉ thắng khoảng 50%. Sụt lớn nhất 33R → rủi ro 5%/lệnh là quá
 >   cao, chỉ nên 1%. Chi tiết: [11, mục 0](11-ket-qua-nghien-cuu-backtest.md).
-> - **Luật vị trí của EPA đã nới:** đầu râu được nằm ở **mọi GLP / RLP H4 cùng chiều còn sống**, không chỉ Main / Shield
->   (hệ `ZEAR2L`, input `InpEpAnyH4Lp` của EA): 439 lệnh, +195R, phần chưa thấy +0.23R/lệnh, sụt 43R. ZM vẫn chỉ vào ở
->   Main / Shield.
+> - **Cập nhật lần 59–66 (2/10/2026), đã có trong EA:** (1) bỏ lệnh **"Main trễ"** — lệnh theo Main H4 khi giá đóng ngày gần nhất nằm ngược
+>   hướng đó so với 10 ngày trước; (2) **không mua khi giá trong GLP D1 / W1**; (3) SL cộng thêm phần spread vượt 1 pip; (4) rủi ro mỗi
+>   lệnh theo độ tin cậy: 2% thường, 5% khi có từ 4 trong 7 yếu tố, trừ 1% khi thua 2 lệnh liên tiếp. Danh mục 3 năm: 330 lệnh, +300R,
+>   sụt 16R. Chi tiết: `backtest/ket-qua/2026-10-02-lan57` tới `lan60`.
+> - **Hệ đang chạy trong EA là hệ chính `ZO-FLEX`** (tên cũ `ZEAR2L`) = bản thử nghiệm ZEAR2 với ba thay đổi ở kiểu LP-AB (tên cũ EPA): (1) đầu râu được nằm ở **mọi GLP / RLP H4 cùng
+>   chiều còn sống**, không chỉ Main / Shield (`InpEpAnyH4Lp`); (2) hai nến xác nhận được phép xuất hiện **trong 4 nến** sau cặp
+>   A/B (`InpEpConfWindow`); (3) lệnh LP-AB dời BE ở **3R** thay vì 1R (`InpLpAbBeR`). Danh mục 3 năm: 449 lệnh, +275R, sụt 32R.
+>   MAIN-AB (tên cũ ZM) và PULLBACK (tên cũ U1w) không đổi.
 
 Cần biết trước: nến ZOS và màu nến ([09](09-ban-chat-nen-zo.md)), LP / Main / Shield ([03](03-zos-khai-niem.md)).
 
@@ -78,7 +83,7 @@ nến xuống dưới Low của nó, RLP chết khi thân nến lên trên High 
 *Cơ sở:* Zerd: "râu không liên quan, áp lực là close". Đã thử yêu cầu râu hai đầu của nến Build ≥ 2 pip (lần 30): số
 LP M15 giảm gần một nửa và tổng R giảm từ +138R còn +92R → giữ cách vẽ hiện tại.
 
-Công cụ: `ZO_LP` tự tính, `ZO_DrawLP` vẽ LP W1 (đỏ), D1 (vàng), H4 (xanh lam) thành đường có nhãn.
+Công cụ: `ZO_LP` tự tính, `ZO_View` vẽ LP H4 / D1 / W1 thành cặp đường High / Low có nhãn vai trò.
 
 ### 1.3. Main và Shield
 
@@ -88,7 +93,7 @@ Công cụ: `ZO_LP` tự tính, `ZO_DrawLP` vẽ LP W1 (đỏ), D1 (vàng), H4 (
   vệ hướng đi.
 
 *Cơ sở:* Zerd: "MM tạo main, SM tạo shield". Trong backtest, vị trí "tại Main hoặc Shield H4" là yếu tố **ổn định
-nhất** của cả hệ (nghiên cứu Potential EP, lần 24). Lệnh ZM vào ở LP H4 không phải Main / Shield: 7 lệnh chỉ +1.0R,
+nhất** của cả hệ (nghiên cứu Potential EP, lần 24). Lệnh MAIN-AB vào ở LP H4 không phải Main / Shield: 7 lệnh chỉ +1.0R,
 so với 19 lệnh +18.1R ở Main / Shield (lần 29).
 
 ---
@@ -102,7 +107,7 @@ Làm mỗi sáng và mỗi khi nến H4 đóng. Bốn câu hỏi, theo thứ t�
 - Lần xác lập Main gần nhất trên H4 là **GLP** → xu thế H4 **tăng** → ưu tiên **BUY**.
 - Là **RLP** → xu thế H4 **giảm** → ưu tiên **SELL**.
 
-Hai kiểu lệnh **ZM** và **U1w** chỉ đánh thuận hướng này. Kiểu **EPA** không bắt buộc thuận, nhưng bắt buộc phải nằm ở
+Hai kiểu lệnh **MAIN-AB** và **PULLBACK** chỉ đánh thuận hướng này. Kiểu **LP-AB** không bắt buộc thuận, nhưng bắt buộc phải nằm ở
 Main / Shield H4 của phe mình (xem mục 4.3).
 
 *Cơ sở:* quy tắc gốc của ZO "không đánh ngược Main". Điểm yếu đã đo được: Main H4 **chậm hơn giá** khi thị trường
@@ -121,16 +126,16 @@ chỗ đó.
 
 | Pha | Nhận biết trên H4 | Ảnh hưởng |
 |---|---|---|
-| **Chạy mạnh (RUN)** | 3 nến H4 gần nhất cùng màu mạnh | Không vào kiểu **U1w** (giá không hồi thật) |
-| **Đuối phía mình (FADE)** | 2 nến H4 gần nhất màu **yếu** của phe mình (BUY: xanh dương) | Không vào kiểu **EPA** |
+| **Chạy mạnh (RUN)** | 3 nến H4 gần nhất cùng màu mạnh | Không vào kiểu **PULLBACK** (giá không hồi thật) |
+| **Đuối phía mình (FADE)** | 2 nến H4 gần nhất màu **yếu** của phe mình (BUY: xanh dương) | Không vào kiểu **LP-AB** |
 | Tích luỹ / không rõ | Nhiều nến hai râu, màu lẫn lộn | Vào bình thường |
 
-*Cơ sở:* U1w khi H4 đang RUN: 7 lệnh, −2.9R (lần 29). EPA khi phe mình đang đuối trên H4 là nhóm thua rõ nhất trong
+*Cơ sở:* PULLBACK khi H4 đang RUN: 7 lệnh, −2.9R (lần 29). LP-AB khi phe mình đang đuối trên H4 là nhóm thua rõ nhất trong
 nghiên cứu Potential EP (lần 24).
 
 ### 2.4. Có vùng D1 / W1 ngược chiều chặn không?
 
-- Giá đang nằm **trong** một LP D1 hoặc W1 **ngược chiều** từng là Main và còn sống → không vào kiểu ZM và U1w.
+- Giá đang nằm **trong** một LP D1 hoặc W1 **ngược chiều** từng là Main và còn sống → không vào kiểu MAIN-AB và PULLBACK.
 
 *Cơ sở:* "khung lớn dẫn khung nhỏ". Đánh BUY ngay trong vùng cản của khung ngày / tuần là đánh vào chỗ MM khung lớn
 đang thủ (lần 22).
@@ -185,7 +190,7 @@ Tất cả ví dụ dưới đây là lệnh **BUY**. Lệnh SELL đổi ngượ
 
 Đọc là: *"một phe vừa thua"*.
 
-### 4.2. Kiểu ZM — vào sâu trong LP H4
+### 4.2. Kiểu MAIN-AB — vào sâu trong LP H4
 
 Đủ cả 4 điều:
 
@@ -194,23 +199,23 @@ Tất cả ví dụ dưới đây là lệnh **BUY**. Lệnh SELL đổi ngượ
 3. Có cặp nến A/B ở hai nến M15 vừa đóng.
 4. Vào khi nến B đóng.
 
-*Cơ sở:* Main vừa đổi hướng chưa đủ 48 giờ thì hay bị đảo lại. Trong ZEAR2, ZM cho 25 lệnh, +35.6R.
+*Cơ sở:* Main vừa đổi hướng chưa đủ 48 giờ thì hay bị đảo lại. Trong ZEAR2, MAIN-AB cho 25 lệnh, +35.6R.
 
-### 4.3. Kiểu EPA — cặp A/B có thêm nến xác nhận
+### 4.3. Kiểu LP-AB — cặp A/B có thêm nến xác nhận
 
 Đủ cả 4 điều:
 
 1. Có cặp nến A/B.
 2. **Hai nến tiếp theo** đều: không có râu dưới (≤ 0.5 pip hoặc ≤ 20% chiều cao nến) và thân tăng.
 3. Đáy của cả đoạn từ nến A tới nến vào nằm **trong hoặc cách ≤ 10 pip** một GLP H4 là Main / Shield.
-4. Vào khi nến xác nhận thứ hai đóng. Hai lệnh EPA cùng hướng cách nhau ít nhất 4 giờ.
+4. Vào khi nến xác nhận thứ hai đóng. Hai lệnh LP-AB cùng hướng cách nhau ít nhất 4 giờ.
 
-EPA là kiểu duy nhất được phép **ngược** Main H4 hiện tại, miễn là có Main / Shield của phe mình ở đó.
+LP-AB là kiểu duy nhất được phép **ngược** Main H4 hiện tại, miễn là có Main / Shield của phe mình ở đó.
 
-*Cơ sở:* chờ thêm 2 nến xác nhận là thay đổi đưa tỉ lệ thắng lên trên 50% (lần 26). EPA là nguồn lãi chính của hệ:
+*Cơ sở:* chờ thêm 2 nến xác nhận là thay đổi đưa tỉ lệ thắng lên trên 50% (lần 26). LP-AB là nguồn lãi chính của hệ:
 61 lệnh, +95.7R.
 
-### 4.4. Kiểu U1w — cú kéo mạnh rồi hết lực
+### 4.4. Kiểu PULLBACK — cú kéo mạnh rồi hết lực
 
 Đủ cả 4 điều:
 
@@ -228,12 +233,12 @@ EPA là kiểu duy nhất được phép **ngược** Main H4 hiện tại, mi�
 | Trường hợp | Áp dụng | Vì sao |
 |---|---|---|
 | **0h–6h** (giờ Việt Nam) | mọi kiểu | Thanh khoản mỏng, spread rộng, hay bị quét |
-| **19h–24h** (phiên New York) | EPA | Potential EP phiên New York lỗ cả khi gần tin (10 lệnh, −6.5R) lẫn xa tin (49 lệnh, −5.1R); chưa tìm được luật riêng nào cho phiên này (lần 25, 26) |
+| **19h–24h** (phiên New York) | LP-AB | Potential EP phiên New York lỗ cả khi gần tin (10 lệnh, −6.5R) lẫn xa tin (49 lệnh, −5.1R); chưa tìm được luật riêng nào cho phiên này (lần 25, 26) |
 | Nến H4 vừa đóng màu **mạnh ngược** | mọi kiểu | 23 lệnh, thắng 2, thua 12 (lần 32) |
-| H4 **đuối phía mình** (2 nến màu yếu) | EPA | Phe mình đang mất lực trên khung lớn |
-| H4 đang **chạy mạnh** (3 nến màu mạnh) | U1w | 7 lệnh, −2.9R: không có cú hồi thật |
-| Giá trong **Main D1 / W1 ngược chiều** | ZM, U1w | Khung lớn đang thủ ở đó |
-| Vừa **thua 2 lệnh liên tiếp** cùng hướng | ZM, U1w | Nghỉ hướng đó 48 giờ: Main H4 có thể đang chậm hơn giá |
+| H4 **đuối phía mình** (2 nến màu yếu) | LP-AB | Phe mình đang mất lực trên khung lớn |
+| H4 đang **chạy mạnh** (3 nến màu mạnh) | PULLBACK | 7 lệnh, −2.9R: không có cú hồi thật |
+| Giá trong **Main D1 / W1 ngược chiều** | MAIN-AB, PULLBACK | Khung lớn đang thủ ở đó |
+| Vừa **thua 2 lệnh liên tiếp** cùng hướng | MAIN-AB, PULLBACK | Nghỉ hướng đó 48 giờ: Main H4 có thể đang chậm hơn giá |
 | **SL cần hơn 15 pip** | mọi kiểu | SL 12.5–15 pip: 34 lệnh chỉ +8.0R; dưới 12.5 pip: 98 lệnh +130R |
 | Đang có **2 lệnh mở** | mọi kiểu | Giới hạn rủi ro cùng lúc |
 | Giá đã **chạy quá 3 pip** khỏi giá tín hiệu | mọi kiểu | Lỡ kèo thì bỏ, không đuổi |
@@ -253,8 +258,8 @@ EPA là kiểu duy nhất được phép **ngược** Main H4 hiện tại, mi�
 
 ### 6.1. SL
 
-- **ZM, U1w:** dưới đáy thấp nhất của **4 nến M15 gần nhất**, trừ thêm 3 pip.
-- **EPA:** dưới đáy thấp nhất của đoạn **từ nến A tới nến vào**, trừ thêm 3 pip.
+- **MAIN-AB, PULLBACK:** dưới đáy thấp nhất của **4 nến M15 gần nhất**, trừ thêm 3 pip.
+- **LP-AB:** dưới đáy thấp nhất của đoạn **từ nến A tới nến vào**, trừ thêm 3 pip.
 - Nếu khoảng cách dưới 8 pip → nới thành 8 pip. Nếu trên 15 pip → **bỏ lệnh**.
 
 Khoảng cách từ giá vào tới SL gọi là **1R**. Mọi thứ về sau tính theo R.
@@ -282,7 +287,7 @@ giá quay lại phá đáy đó nghĩa là nhận định sai.
 Chia lệnh làm **3 phần bằng nhau**, đích ở **mép gần / giữa / đầu xa** của LP H4 ngược. Chỉ giữ các đích cách giá vào
 ít nhất 1R.
 
-Lot dưới 0.03 (không chia 3 được) → **một đích**: ZM lấy 2R hoặc mép gần LP; U1w và EPA lấy 3R, giữa hoặc đầu xa —
+Lot dưới 0.03 (không chia 3 được) → **một đích**: MAIN-AB lấy 2R hoặc mép gần LP; PULLBACK và LP-AB lấy 3R, giữa hoặc đầu xa —
 chọn mức gần nhất cách ít nhất 1.5R.
 
 ---
@@ -310,14 +315,14 @@ chọn mức gần nhất cách ít nhất 1.5R.
 
 Trả lời "có" hết mới vào:
 
-1. ☐ Bây giờ là 6h–24h (và trước 19h nếu là kiểu EPA)?
+1. ☐ Bây giờ là 6h–24h (và trước 19h nếu là kiểu LP-AB)?
 2. ☐ Nến ZOS H4 vừa đóng **không** phải màu mạnh ngược hướng lệnh?
 3. ☐ Giá đang ở trong / sát một LP H4 cùng chiều là **Main hoặc Shield**?
-4. ☐ Có đủ điều kiện của **một** trong ba kiểu (ZM / EPA / U1w)?
+4. ☐ Có đủ điều kiện của **một** trong ba kiểu (MAIN-AB / LP-AB / PULLBACK)?
 5. ☐ SL theo cấu trúc **không quá 15 pip**?
 6. ☐ Có LP H4 ngược phía trước làm đích, cách ít nhất 1R?
-7. ☐ Không nằm trong vùng Main D1 / W1 ngược chiều (với ZM, U1w)?
-8. ☐ Chưa thua 2 lệnh liên tiếp cùng hướng trong 48 giờ (với ZM, U1w)?
+7. ☐ Không nằm trong vùng Main D1 / W1 ngược chiều (với MAIN-AB, PULLBACK)?
+8. ☐ Chưa thua 2 lệnh liên tiếp cùng hướng trong 48 giờ (với MAIN-AB, PULLBACK)?
 9. ☐ Đang có ít hơn 2 lệnh mở?
 10. ☐ Không trong ±30 phút quanh tin đỏ USD / EUR?
 
@@ -332,7 +337,7 @@ không có lệnh nào.
    bị chặn.
 2. **Vùng chờ:** GLP H4 1.1700–1.1720. Điểm giữa 1.1710. **Đích:** RLP H4 phía trên 1.1790–1.1810.
 3. **Chờ:** 15h, giá từ 1.1760 hồi xuống 1.1716.
-4. **Tín hiệu (kiểu EPA):**
+4. **Tín hiệu (kiểu LP-AB):**
    - Nến A: râu dưới chọc xuống 1.1714, thân nhỏ.
    - Nến B: không còn râu dưới.
    - Hai nến tiếp: xanh, không râu dưới. Nến thứ hai đóng ở 1.1727.
@@ -352,10 +357,10 @@ không có lệnh nào.
 
 | Lúc | Việc | Công cụ |
 |---|---|---|
-| Sáng (trước 9h) | Đọc bias: Main H4, màu nến H4, vùng D1 / W1 | Bản tin `ZOS MARKET ANALYSIS` của EA; `ZO_DrawLP` |
-| | Đánh dấu vùng chờ và đích | `ZO_View`, `ZO_DrawLP` |
+| Sáng (trước 9h) | Đọc bias: Main H4, màu nến H4, vùng D1 / W1 | Bản tin `ZOS MARKET ANALYSIS` của EA; `ZO_View` |
+| | Đánh dấu vùng chờ và đích | `ZO_View` |
 | Trong ngày | Chờ tin `🔔 POTENTIAL EP` (mới là báo trước, chưa vào) | Telegram |
-| | Có tin `✅ ENTRY` hoặc `🎯 TÍN HIỆU ZOU` → soát checklist mục 8 | Telegram, chart |
+| | Có tin `✅ ENTRY` hoặc `🎯 TÍN HIỆU` → soát checklist mục 8 | Telegram, chart |
 | Khi có lệnh | BE ở 1R, giữ / chốt theo màu nến M15 | EA tự làm trên demo; tin `🤖` |
 | Tối thứ 6 | Đóng hết trước 22h | EA tự làm |
 | Cuối tuần | Mở `ZO_BTView`, so lệnh của mình với lệnh của hệ | `ZO_BTView` |
@@ -378,7 +383,7 @@ EURUSD, 41 tuần, spread 1 pip, nến chạm cả SL và TP tính là thua.
 | Chuỗi thua dài nhất | 5 lệnh |
 | Hai tháng cuối (8–9/2026) | 30 lệnh, +50.8R |
 
-Theo kiểu lệnh: EPA 61 lệnh +95.7R · ZM 25 lệnh +35.6R · U1w 26 lệnh +29.8R.
+Theo kiểu lệnh: LP-AB 61 lệnh +95.7R · MAIN-AB 25 lệnh +35.6R · PULLBACK 26 lệnh +29.8R.
 
 **Lệnh thua trông thế nào:** phần lớn chết nhanh — 38/49 lệnh thua (đo trên bản trước khi thêm luật nến H4) dính SL
 trong 4 giờ đầu, và 29/49 chưa từng đi được 0.3R. Thấy lệnh âm ngay sau khi vào là chuyện bình thường của hệ.

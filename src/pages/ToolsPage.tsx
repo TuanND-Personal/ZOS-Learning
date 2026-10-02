@@ -3,15 +3,13 @@ import { DOCS, docPath } from '../content';
 
 const TOOLS = [
   { name: 'ZO_LP', kind: 'Indicator', what: 'Dựng LP từ ZOS trên từng khung, chia sẻ dữ liệu giữa 5 chart, cảnh báo retest / break / SETUP, gợi ý BE, kiểm tra lệnh.' },
-  { name: 'ZO_View', kind: 'Indicator', what: 'Hộp LP khung đang mở (G xanh, R đỏ), đánh dấu nến break / clear / Main / build 1 đầu / thu nến, bảng phân tích W1→M15 không nhấp nháy.' },
-  { name: 'ZO_DrawLP', kind: 'Script', what: 'Vẽ 1 lần các LP quan trọng W1 / D1 / H4 bằng cặp đường có nhãn (H-RLP-W1 …), màu theo khung, đánh dấu Main.' },
-  { name: 'ZO_Analyst', kind: 'EA', what: 'Phân tích thị trường, báo Potential EP và tín hiệu vào lệnh của hệ ZEAR2, nhắc BE / chốt, cảnh báo tin, gửi Telegram. Trên tài khoản demo tự đặt và quản lý lệnh; trên tài khoản thật mặc định chỉ báo tín hiệu.' },
-  { name: 'ZO_BTView', kind: 'Indicator', what: 'Xem lại lệnh backtest của hệ ZEAR2 trên chart; bấm vào một lệnh để xem vì sao vào, yếu tố ủng hộ và không ủng hộ.' },
-  { name: 'ZO_Review', kind: 'Indicator', what: 'Chart sạch (LP H4 / D1 / W1 dạng đường, LP M15 dạng hộp) để tự đánh dấu điểm vào bằng mũi tên.' },
-  { name: 'ZO_Wick', kind: 'Indicator', what: 'Đánh dấu nến ZOS râu dài và nến hết râu, để kiểm tra máy nhận diện có đúng ý bạn không.' },
-  { name: 'ZO_ExportMarks', kind: 'Script', what: 'Xuất các mũi tên bạn tự đánh dấu ra file để so với hệ.' },
-  { name: 'ZO_Notifier', kind: 'EA', what: 'Bản cũ chỉ chuyển cảnh báo — không cần nếu dùng ZO_Analyst.' },
-  { name: 'ZOS_Probe', kind: 'Script', what: 'Xuất dữ liệu ZOS ra CSV (dùng cho backtest).' },
+  { name: 'ZO_Analyst', kind: 'EA', what: 'EA của hệ chính ZO-FLEX: phân tích thị trường, báo Potential EP và tín hiệu vào lệnh (MAIN-AB, PULLBACK, LP-AB), quản lý lệnh kể cả lệnh vào tay, cảnh báo tin, gửi Telegram. Trên tài khoản demo tự đặt và quản lý lệnh; trên tài khoản thật mặc định chỉ báo tín hiệu.' },
+  { name: 'ZO_View', kind: 'Indicator', what: 'Hộp LP khung đang mở (G xanh, R đỏ), đường LP H4 / D1 / W1 có nhãn vai trò, đánh dấu nến break / clear / Main / build 1 đầu / thu nến, bảng phân tích W1→M15.' },
+  { name: 'ZO_BTView', kind: 'Indicator · backtest', what: 'Thư mục ZO_Backtest. Xem lại lệnh backtest của hệ ZO-FLEX và chỗ báo EP tiềm năng trên chart; bấm vào một lệnh để xem vì sao vào, yếu tố ủng hộ và không ủng hộ.' },
+  { name: 'ZO_RunStart', kind: 'Indicator · backtest', what: 'Thư mục ZO_Backtest. Đánh dấu các điểm bắt đầu đợt chạy trong quá khứ; bấm vào để xem giải thích.' },
+  { name: 'ZO_Review', kind: 'Indicator · backtest', what: 'Thư mục ZO_Backtest. Chart sạch (LP H4 / D1 / W1 dạng đường, LP M15 dạng hộp) để tự đánh dấu điểm vào bằng mũi tên.' },
+  { name: 'ZO_ExportMarks', kind: 'Script · backtest', what: 'Thư mục ZO_Backtest. Xuất các mũi tên bạn tự đánh dấu ra file để so với hệ.' },
+  { name: 'ZOS_Probe', kind: 'Script · backtest', what: 'Thư mục ZO_Backtest. Xuất dữ liệu ZOS ra CSV (dùng cho backtest).' },
 ];
 
 export default function ToolsPage() {

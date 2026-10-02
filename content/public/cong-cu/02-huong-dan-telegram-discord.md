@@ -1,5 +1,7 @@
 # Hướng dẫn: nhận cảnh báo ZO qua Telegram / Discord (làm trên điện thoại)
 
+> **Lưu ý (2/10/2026):** đây là ghi chú cũ. `ZO_Notifier`, `ZO_DrawLP`, `ZO_Wick` đã bị gỡ khỏi bộ tool (ZO_Analyst gửi Telegram, ZO_View vẽ LP khung lớn); tool backtest nằm trong thư mục con `ZO_Backtest`. Hướng dẫn hiện hành: `mt4/docs/HUONG-DAN-SU-DUNG.md` (hệ chính ZO-FLEX).
+
 Bạn chỉ cần chọn **một** trong hai (Telegram gọn hơn, khuyên dùng). Tên nút có thể khác đôi chút tuỳ phiên bản app.
 
 ---

@@ -1,7 +1,9 @@
 # 11 — Tổng kết nghiên cứu backtest: cái gì có tác dụng, cái gì không
 
+> **Tên gọi (từ 2/10/2026):** hệ chính là **ZO-FLEX** (mã backtest `ZOFLEX`), gồm ba kiểu vào **MAIN-AB**, **PULLBACK**, **LP-AB**. Tên cũ trong các bản thử nghiệm: MAIN-AB = ZM, PULLBACK = U1w, LP-AB = EPA, MAIN-AB + PULLBACK = ZOU, cả hệ = ZEAR2L. Các hệ ZEA, ZEA2, ZEA3, ZEAR, ZEAR2… là **bản thử nghiệm**, giữ lại để so sánh. Các bảng lịch sử bên dưới vẫn dùng tên cũ.
+
 Hơn 30 vòng backtest trên EURUSD (19/12/2025 → 1/10/2026, 41 tuần, khung H4 → M15). Trang này ghi lại kết luận để
-không phải thử lại những thứ đã thử. Bộ luật cuối cùng nằm ở [10 — Bộ quy tắc ZEAR2](10-bo-quy-tac-zear2.md).
+không phải thử lại những thứ đã thử. Bộ luật cuối cùng nằm ở [10 — Bộ quy tắc hệ chính ZO-FLEX](10-bo-quy-tac-zear2.md).
 
 > Mọi con số là backtest trên một cặp tiền, 41 tuần, và các luật được chọn trên chính dữ liệu đó. Hãy đọc chúng như
 > "hướng nào tốt hơn hướng nào".
@@ -17,7 +19,8 @@ Chạy danh mục thật: tối đa 2 lệnh, nghỉ sau 2 lệnh thua, rào Mai
 | Hệ | Lệnh | Lệnh/tuần | Lãi / hoà / lỗ | Tổng R | R/lệnh | Chưa thấy: R/lệnh | Sụt R lớn nhất |
 |---|---|---|---|---|---|---|---|
 | ZEAR2 (như mục 1) | 377 | 2.2 | 23% / 29% / 48% | +125R | +0.33 | +0.09 | 33R |
-| **ZEAR2L** = ZEAR2 với EPA nhận mọi LP H4 cùng chiều (đang chạy trong EA) | 439 | 2.6 | 22% / 28% / 49% | +195R | +0.44 | +0.23 | 43R |
+| **ZO-FLEX — hệ chính** (đang chạy trong EA) = bản dưới + bỏ lệnh "Main trễ" + không mua trong GLP D1 / W1 | 330 | 2.0 | 29% / 15% / 56% | +300R | +0.91 | +0.57 (hai luật chặn được chọn trên cả giai đoạn này, nên không còn là "chưa thấy") | 16R |
+| ZOFLEX55 (ZO-FLEX trước lần 59; tên cũ ZEAR2L) = ZEAR2 với LP-AB nhận mọi LP H4 cùng chiều, 2 nến xác nhận trong 4 nến, EPA dời BE ở 3R | 449 | 2.7 | 27% / 13% / 60% | +275R | +0.61 | +0.35 | 32R |
 
 Những điều rút ra từ các vòng nghiên cứu 35–52 (báo cáo trong `backtest/ket-qua/`):
 
@@ -32,6 +35,8 @@ Những điều rút ra từ các vòng nghiên cứu 35–52 (báo cáo trong `
   đắt / bán ở 20% đầu rẻ của biên độ 5 ngày; không vào khi đợt chạy trước đó < 20 pip; không vào trong LP M15 ngược chiều hoặc
   ngay tại LP H4 vừa bị phá; đầu râu phải nằm ở một LP H4 cùng chiều (không ở LP nào: −0.28R/lệnh).
 - **Sụt 33–43R** nghĩa là rủi ro 5%/lệnh sẽ cháy tài khoản; chỉ nên 1%/lệnh trên demo.
+- Chia 3 năm thành ba khối, ZO-FLEX cho +11R (7/2023–9/2024), +105R (10/2024–12/2025), +159R (từ 19/12/2025): 15 tháng đầu gần như hoà.
+- Các vòng cải tiến trên hệ đang chạy (50 phương án): `backtest/ket-qua/2026-10-02-lan55-cai-tien-he-dang-chay.md`.
 - Bảng so sánh 37 hệ: `backtest/ket-qua/2026-10-02-lan50-so-sanh-tat-ca-cac-he.md`.
 
 ---

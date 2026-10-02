@@ -1,5 +1,7 @@
 # Hướng dẫn sử dụng bộ tool ZO (ZO_LP · ZO_View · ZO_DrawLP · ZO_Analyst)
 
+> **Lưu ý (2/10/2026):** đây là ghi chú cũ. `ZO_Notifier`, `ZO_DrawLP`, `ZO_Wick` đã bị gỡ khỏi bộ tool (ZO_Analyst gửi Telegram, ZO_View vẽ LP khung lớn); tool backtest nằm trong thư mục con `ZO_Backtest`. Hướng dẫn hiện hành: `mt4/docs/HUONG-DAN-SU-DUNG.md` (hệ chính ZO-FLEX).
+
 > Bộ tool **không tự trade**. Nó vẽ vùng thanh khoản (LP) từ ZOS, theo dõi trạng thái vùng, báo cho bạn
 > đúng lúc cần nhìn chart, và nhắc khi bạn làm trái luật ZO. Quyết định vào lệnh vẫn là của bạn.
 >

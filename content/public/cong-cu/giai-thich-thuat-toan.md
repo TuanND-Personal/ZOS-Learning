@@ -1,5 +1,7 @@
 # Giải thích thuật toán của bộ tool ZO
 
+> **Tên gọi (từ 2/10/2026):** hệ chính là **ZO-FLEX** (mã backtest `ZOFLEX`), gồm ba kiểu vào **MAIN-AB**, **PULLBACK**, **LP-AB**. Tên cũ trong các bản thử nghiệm: MAIN-AB = ZM, PULLBACK = U1w, LP-AB = EPA, MAIN-AB + PULLBACK = ZOU, cả hệ = ZEAR2L. Các hệ ZEA, ZEA2, ZEA3, ZEAR, ZEAR2… là **bản thử nghiệm**, giữ lại để so sánh.
+
 Tài liệu này mô tả cách các indicator, script và EA tính toán, đủ chi tiết để bạn tự kiểm tra trên chart. Mọi ngưỡng số ghi ở đây là giá trị đang dùng trong mã nguồn (`MQL4/Include/ZO/ZoCore.mqh`, `ZO_LP.mq4`) và trong backtest (`backtest/bt_h4m15.py`, `bt_lab.py`).
 
 Quy ước: 1 pip = 0.0001 (1.1700 → 1.1710 là 10 pip). "Nến" luôn là **nến ZOS**, trừ khi ghi rõ "nến giá".
@@ -37,7 +39,7 @@ Hệ quả: râu **cùng chiều** nến gần như luôn có (96%), không mang
 
 Đọc ZOS của khung H4 từ chart M15 cho ra nến khác với chart H4 thật. Vì vậy:
 - **ZO_LP** chạy trên chart của từng khung, đọc ZOS của chính chart đó, rồi ghi kết quả ra file `Common\Files\zo_lp\<cặp>_<phút>.csv`.
-- **ZO_View, ZO_DrawLP, ZO_Analyst** đọc các file đó. File gồm: dòng `H` (nến cuối, xu thế), 12 dòng `C` (12 nến ZOS vừa đóng), các dòng `Z` (từng LP).
+- **ZO_View, ZO_Analyst** đọc các file đó. File gồm: dòng `H` (nến cuối, xu thế), 12 dòng `C` (12 nến ZOS vừa đóng), các dòng `Z` (từng LP).
 - Khung không có file thì bị bỏ qua, hoặc ước tính bằng đọc từ xa và gắn nhãn `[ƯỚC TÍNH]`.
 
 ---
@@ -106,18 +108,18 @@ Với một lệnh hướng `d` (mua hoặc bán):
 - **Nến A:** râu ngược ≥ thân của A, ≥ 1/3 biên độ của A, và ≥ 1 pip.
 - **Nến B** (nến ngay sau): râu ngược ≤ max(0.5 pip, 10% biên độ của B), **hoặc** râu thuận dài hơn râu ngược.
 
-### 5.2. Hết lực kéo (dùng cho U1w)
+### 5.2. Hết lực kéo (dùng cho PULLBACK)
 
 - Trong 3 nến trước có ít nhất một nến râu ngược ≥ 5 pip và ≥ 1/3 biên độ của nó.
 - Nến vừa đóng: râu ngược ≤ max(0.5 pip, 10% biên độ) và thân đi theo hướng lệnh.
 
-### 5.3. Nến xác nhận (dùng cho EPA)
+### 5.3. Nến xác nhận (dùng cho LP-AB)
 
 Một nến xác nhận khi râu ngược ≤ max(0.5 pip, 20% biên độ) **và** thân đi theo hướng lệnh.
 
-### 5.4. Râu hết dần (ZO_Wick, Potential EP kiểu "fade")
+### 5.4. Râu hết dần (Potential EP kiểu "fade")
 
-- Nến A có râu ngược ≥ ngưỡng (ZO_Wick: 10 pip; Potential EP: 4 pip), dài hơn râu thuận.
+- Nến A có râu ngược ≥ ngưỡng (Potential EP: 4 pip), dài hơn râu thuận.
 - Các nến ở giữa (tối đa 5 nến): râu ngược ngắn hơn râu A và chưa hết.
 - Điểm đánh dấu = nến **đầu tiên** có râu ngược ≤ 1/10 râu A, hoặc là nến 2 đầu (râu thuận ≥ râu ngược).
 
@@ -127,7 +129,7 @@ Một nến xác nhận khi râu ngược ≤ max(0.5 pip, 20% biên độ) **v�
 
 Kiểm tra mỗi khi một nến M15 đóng. Vào market ở giá đóng nến đó.
 
-### 6.1. ZM
+### 6.1. MAIN-AB
 
 1. Xu thế Main H4 = hướng lệnh, và Main đã giữ hướng **≥ 48 giờ**.
 2. Có cặp nến A/B (mục 5.1) ở 2 nến vừa đóng.
@@ -135,7 +137,7 @@ Kiểm tra mỗi khi một nến M15 đóng. Vào market ở giá đóng nến �
 4. Một trong hai nến giá trước đó (nến A hoặc nến trước A) có đáy (lệnh mua) nằm trong **nửa sâu** của LP đó: từ Low của vùng (cho phép thấp hơn tới 30 pip) đến 50% vùng. Lệnh bán: tương tự với đỉnh và nửa trên của RLP.
 5. Không trong 0h–6h (giờ Việt Nam).
 
-### 6.2. U1w
+### 6.2. PULLBACK
 
 1. Xu thế Main H4 = hướng lệnh.
 1b. H4 **không** ở phase RUN (3 nến H4 gần nhất cùng màu mạnh, bất kể hướng) — thêm ở lần 29.
@@ -144,7 +146,7 @@ Kiểm tra mỗi khi một nến M15 đóng. Vào market ở giá đóng nến �
 4. Đáy / đỉnh đó nằm ở một mốc: trong hoặc cách ≤ 10 pip một LP H4 cùng chiều, hoặc một LP M15 cùng chiều. (Số tròn từng là một loại mốc; đã bỏ ở lần 28 vì chỉ thêm lệnh lỗ.)
 5. Không trong 0h–6h.
 
-### 6.3. EPA
+### 6.3. LP-AB
 
 1. **Potential EP:** cặp nến A/B.
 2. **Xác nhận:** 2 nến tiếp theo đều là nến xác nhận (mục 5.3). Vào khi nến thứ 2 đóng. Hệ ZEA3 chờ 3 nến (`InpEpConfirm = 3`).
@@ -153,16 +155,16 @@ Kiểm tra mỗi khi một nến M15 đóng. Vào market ở giá đóng nến �
 5. **Giờ:** không vào 0h–6h và 19h–24h (phiên New York).
 6. Cùng hướng cách nhau ít nhất 4 giờ.
 
-**Từ 2/10/2026 (lần 52):** vị trí của EPA được nới thành *mọi GLP / RLP H4 cùng chiều còn sống* trong phạm vi 10 pip quanh đầu râu (input `InpEpAnyH4Lp`, backtest `ep_loc = "h4any"`, hệ `ZEAR2L`). Danh mục 3 năm: 439 lệnh, +195R so với 377 lệnh, +125R khi chỉ nhận Main / Shield; sụt lớn nhất 43R so với 33R. ZM vẫn chỉ vào ở Main / Shield (nới ZM làm mất R).
+**Từ 2/10/2026 (lần 52):** vị trí của LP-AB được nới thành *mọi GLP / RLP H4 cùng chiều còn sống* trong phạm vi 10 pip quanh đầu râu (input `InpEpAnyH4Lp`, backtest `ep_loc = "h4any"`, hệ `ZO-FLEX`). Danh mục 3 năm: 439 lệnh, +195R so với 377 lệnh, +125R khi chỉ nhận Main / Shield; sụt lớn nhất 43R so với 33R. MAIN-AB vẫn chỉ vào ở Main / Shield (nới MAIN-AB làm mất R).
 
-EPA không yêu cầu thuận xu thế Main H4 hiện tại. Lý do nằm ở nghiên cứu lần 24: vị trí tại Main / Shield là yếu tố ổn định nhất, còn hướng Main H4 thì không.
+LP-AB không yêu cầu thuận xu thế Main H4 hiện tại. Lý do nằm ở nghiên cứu lần 24: vị trí tại Main / Shield là yếu tố ổn định nhất, còn hướng Main H4 thì không.
 
 ### 6.4. Các bộ chặn
 
 | Chặn | Áp dụng | Luật |
 |---|---|---|
-| Vùng Main W1 / D1 ngược | ZM, U1w | Không vào khi giá vào nằm trong một LP D1 hoặc W1 ngược chiều đã từng là Main và còn sống |
-| Dừng sau thua | ZM, U1w | 2 tín hiệu thua liên tiếp cùng hướng → dừng hướng đó 48 giờ. "Thua" = chạm SL trước khi đi được 1R |
+| Vùng Main W1 / D1 ngược | MAIN-AB, PULLBACK | Không vào khi giá vào nằm trong một LP D1 hoặc W1 ngược chiều đã từng là Main và còn sống |
+| Dừng sau thua | MAIN-AB, PULLBACK | 2 tín hiệu thua liên tiếp cùng hướng → dừng hướng đó 48 giờ. "Thua" = chạm SL trước khi đi được 1R |
 | Tin đỏ | mọi tín hiệu của EA | Không phát tín hiệu trong ±30 phút quanh tin mức cao của USD / EUR (chỉnh được; backtest chưa chứng minh có lợi) |
 | SL quá xa | tất cả | SL theo cấu trúc > 15 pip → không vào |
 | Nến H4 mạnh ngược (`InpH4Veto`) | tất cả | Nến ZOS H4 vừa đóng có màu mạnh của phe ngược (BUY: đỏ, SELL: xanh lá) → không vào. Backtest lần 32: nhóm này có 23 lệnh, thắng 2, thua 12 |
@@ -173,8 +175,8 @@ EPA không yêu cầu thuận xu thế Main H4 hiện tại. Lý do nằm ở ng
 
 ### 7.1. SL
 
-- ZM, U1w: sau đáy / đỉnh của **4 nến giá gần nhất** + 3 pip.
-- EPA: sau đáy / đỉnh của đoạn từ nến A tới nến vào + 3 pip.
+- MAIN-AB, PULLBACK: sau đáy / đỉnh của **4 nến giá gần nhất** + 3 pip.
+- LP-AB: sau đáy / đỉnh của đoạn từ nến A tới nến vào + 3 pip.
 - Nếu khoảng cách < 10 pip → nới thành 10 pip. Nếu > 15 pip → bỏ lệnh. (Cấu hình ZEAR: tối thiểu 8 pip.)
 
 Gọi khoảng cách SL là **1R**.
@@ -190,7 +192,7 @@ Tìm **LP H4 ngược chiều gần nhất phía trước** (còn sống, kể c
 
 - Không có LP ngược phía trước → dùng 5R thay cho các mức của LP.
 - Chỉ giữ các mức cách giá vào ≥ 1R. Khối lượng chia đều cho các mức còn lại.
-- Lot < 0.03 (không chia được 3 phần): 1 đích duy nhất — ZM: 2R hoặc mép gần LP; U1w, EPA: 3R, giữa hoặc xa — lấy mức gần nhất cách ≥ 1.5R.
+- Lot < 0.03 (không chia được 3 phần): 1 đích duy nhất — MAIN-AB: 2R hoặc mép gần LP; PULLBACK, LP-AB: 3R, giữa hoặc xa — lấy mức gần nhất cách ≥ 1.5R.
 
 ### 7.3. Quản lý
 
@@ -260,7 +262,7 @@ Mỗi phe bắt đầu với 1 điểm, cộng thêm:
 
 ### 8.3. Quality /100 của Potential EP
 
-Là bảng kiểm các luật của EPA:
+Là bảng kiểm các luật của LP-AB:
 
 | Điều kiện đạt | Điểm |
 |---|---|
@@ -280,7 +282,7 @@ Là bảng kiểm các luật của EPA:
 
 ## 8b. Số tròn (RN)
 
-RN = các mức giá cách nhau **25 pip** (bội của 0.0025: …00, …25, …50, …75), theo định nghĩa ZO. RN chỉ dùng để hiển thị: dòng `● RN` trong bản phân tích, dòng "RN … hội tụ" trong tin Potential EP (khi đầu râu cách RN ≤ 3 pip), chấm vàng của ZO_Wick. RN không tham gia điều kiện vào lệnh và không cộng điểm.
+RN = các mức giá cách nhau **25 pip** (bội của 0.0025: …00, …25, …50, …75), theo định nghĩa ZO. RN chỉ dùng để hiển thị: dòng `● RN` trong bản phân tích, dòng "RN … hội tụ" trong tin Potential EP (khi đầu râu cách RN ≤ 3 pip). RN không tham gia điều kiện vào lệnh và không cộng điểm.
 
 ---
 
@@ -296,10 +298,10 @@ RN = các mức giá cách nhau **25 pip** (bội của 0.0025: …00, …25, �
 
 ## 10. Thuật toán hiển thị
 
-### 10.1. Chọn LP để vẽ (ZO_View, ZO_DrawLP)
+### 10.1. Chọn LP để vẽ (ZO_View)
 
 1. Trong các LP cùng chiều chồng lên nhau, chỉ giữ LP có điểm cao nhất. Điểm = 100 nếu là Main + 5 × số nến Build (tối đa 4) + 12 nếu đang retest / 10 nếu vừa break / 6 nếu chưa break / 2 nếu đã chạy − 2 × số lần retest (tối đa 5) + một phần nhỏ ưu tiên LP mới hơn.
-2. Sắp theo khoảng cách tới giá. Giữ: mọi Main, LP đang chứa giá, và N LP gần nhất phía trên, N phía dưới (ZO_DrawLP: 2; ZO_View: 3).
+2. Sắp theo khoảng cách tới giá. Giữ: mọi Main, LP đang chứa giá, và N LP gần nhất phía trên, N phía dưới (ZO_View: `InpPerSide`, 0 = vẽ hết).
 
 ### 10.2. Nhãn không đè nhau
 
