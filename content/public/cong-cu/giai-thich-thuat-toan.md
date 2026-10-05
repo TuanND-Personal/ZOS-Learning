@@ -38,8 +38,9 @@ Hệ quả: râu **cùng chiều** nến gần như luôn có (96%), không mang
 ### 1.3. Vì sao mỗi khung cần một chart
 
 Đọc ZOS của khung H4 từ chart M15 cho ra nến khác với chart H4 thật. Vì vậy:
-- **ZO_LP** chạy trên chart của từng khung, đọc ZOS của chính chart đó, rồi ghi kết quả ra file `Common\Files\zo_lp\<cặp>_<phút>.csv`.
-- **ZO_View, ZO_Analyst** đọc các file đó. File gồm: dòng `H` (nến cuối, xu thế), 12 dòng `C` (12 nến ZOS vừa đóng), các dòng `Z` (từng LP).
+- LP của mỗi khung được tính trên một chart **của khung đó** rồi ghi ra file `Common\Files\zo_lp\<cặp>_<phút>.csv`. Người ghi là **ZO_LP** (trên chart dữ liệu H4 mà EA giữ mở, và trên chart D1 / W1 mà EA ghé qua vài chục giây khi dữ liệu cũ) hoặc **ZO_View** (cho khung của chart bạn đang nhìn).
+- **ZO_View, ZO_Analyst** đọc các file đó cho những khung khác khung chart của mình. File gồm: dòng `H` (nến cuối, xu thế), 12 dòng `C` (12 nến ZOS vừa đóng), các dòng `Z` (từng LP).
+- EA chỉ xét tín hiệu khi file H4 đã có nến H4 vừa đóng; nếu file cũ quá 2 phút sau khi nến M15 mở thì EA bỏ tín hiệu và báo một lần mỗi giờ.
 - Khung không có file thì bị bỏ qua, hoặc ước tính bằng đọc từ xa và gắn nhãn `[ƯỚC TÍNH]`.
 
 ---
@@ -125,7 +126,7 @@ Một nến xác nhận khi râu ngược ≤ max(0.5 pip, 20% biên độ) **v�
 
 ---
 
-## 6. Tín hiệu vào lệnh (hệ ZEA)
+## 6. Tín hiệu vào lệnh (hệ ZO-FLEX)
 
 Kiểm tra mỗi khi một nến M15 đóng. Vào market ở giá đóng nến đó.
 
@@ -159,7 +160,35 @@ Kiểm tra mỗi khi một nến M15 đóng. Vào market ở giá đóng nến �
 
 LP-AB không yêu cầu thuận xu thế Main H4 hiện tại. Lý do nằm ở nghiên cứu lần 24: vị trí tại Main / Shield là yếu tố ổn định nhất, còn hướng Main H4 thì không.
 
-### 6.4. Các bộ chặn
+### 6.4. LP-BUILD (từ 5/10/2026, lần 79–80)
+
+Ý tưởng: tại một LP H4 của phe mình, hai phe giằng co (nến Build), rồi phe mình thắng (nến màu mạnh đầu tiên).
+
+1. Nến M15 vừa đóng là nến ZOS **màu mạnh** theo hướng lệnh (xanh lá để mua, đỏ để bán), và nến liền trước **chưa** phải màu mạnh đó.
+2. Trong **12 nến M15** trước nến vào có **từ 2 nến Build** (`InpBuildWindow`, `InpBuildMin`).
+3. Đáy thấp nhất (lệnh mua) hoặc đỉnh cao nhất (lệnh bán) của 13 nến đó nằm trong, hoặc cách ≤ 5 pip, một **LP H4 cùng chiều còn sống**.
+4. **12 nến H4 gần nhất đi ngang** (mục 6.5).
+5. **60 nến H4 gần nhất (10 ngày) không đi ngược hướng lệnh** (`InpBuildLongBars`, ngưỡng 0,15).
+6. Chỉ từ **13h đến 24h** giờ Việt Nam (`InpBuildFromHour`).
+7. Lệnh cùng hướng đóng gần nhất không phải lệnh thua trong 24 giờ qua (`InpBuildPauseHours`).
+8. Không có lệnh cùng hướng đang mở tại chính LP H4 đó.
+9. Các bộ chặn chung ở mục 6.6 vẫn áp dụng (nến H4 mạnh ngược, Main trễ, mua trong GLP D1 / W1, tin đỏ, SL > 15 pip).
+
+Cùng trigger này ở LP M15, LP D1 / W1 hoặc không ở LP nào đều âm trong backtest; chờ nến mạnh đóng vượt cả cụm Build cũng kém hơn.
+
+### 6.5. Hướng của 12 nến H4 gần nhất (lần 77)
+
+Lấy giá đóng thật của 13 nến H4 đã đóng. Tính **quãng đi ròng** (đóng cuối trừ đóng đầu) chia cho **tổng quãng đi** (cộng mọi bước nến-sang-nến).
+
+| Tỉ số, tính theo hướng lệnh | Gọi là |
+|---|---|
+| > +0,25 | H4 **đã đi thuận** hướng lệnh |
+| < −0,25 | H4 **đi ngược** hướng lệnh |
+| ở giữa | H4 **đi ngang** |
+
+Input: `InpRegimeBars = 12`, `InpRegimeThreshold = 0.25`. Chỉ số này quyết định mức dời SL về hoà (mục 7.3), đích đầu của PULLBACK (mục 7.2) và việc LP-BUILD có được vào hay không.
+
+### 6.6. Các bộ chặn
 
 | Chặn | Áp dụng | Luật |
 |---|---|---|
@@ -177,7 +206,9 @@ LP-AB không yêu cầu thuận xu thế Main H4 hiện tại. Lý do nằm ở 
 
 - MAIN-AB, PULLBACK: sau đáy / đỉnh của **4 nến giá gần nhất** + 3 pip.
 - LP-AB: sau đáy / đỉnh của đoạn từ nến A tới nến vào + 3 pip.
-- Nếu khoảng cách < 10 pip → nới thành 10 pip. Nếu > 15 pip → bỏ lệnh. (Cấu hình ZEAR: tối thiểu 8 pip.)
+- LP-BUILD: sau đáy / đỉnh của 13 nến (12 nến trước + nến vào) + 3 pip.
+- Hệ chính (`InpTpProfile = 1`): khoảng cách < 8 pip → nới thành 8 pip; > 15 pip → bỏ lệnh. Áp dụng cho cả bốn loại lệnh (từ 5/10/2026 MAIN-AB và PULLBACK trong EA cũng dùng 8 pip như backtest; trước đó EA dùng 10 pip).
+- Các hệ cũ (`InpTpProfile = 0`): tối thiểu 10 pip.
 
 Gọi khoảng cách SL là **1R**.
 
@@ -190,13 +221,23 @@ Tìm **LP H4 ngược chiều gần nhất phía trước** (còn sống, kể c
 | ZEA (`InpTpProfile = 0`) | 1R, giữa, đầu xa |
 | ZEAR (`InpTpProfile = 1`) | mép gần, giữa, đầu xa |
 
+- **PULLBACK khi 12 nến H4 đi ngang hoặc ngược** (mục 6.5): đích đầu là **0,7R** thay cho mép gần (`InpPullbackEarlyR`).
 - Không có LP ngược phía trước → dùng 5R thay cho các mức của LP.
 - Chỉ giữ các mức cách giá vào ≥ 1R. Khối lượng chia đều cho các mức còn lại.
 - Lot < 0.03 (không chia được 3 phần): 1 đích duy nhất — MAIN-AB: 2R hoặc mép gần LP; PULLBACK, LP-AB: 3R, giữa hoặc xa — lấy mức gần nhất cách ≥ 1.5R.
 
 ### 7.3. Quản lý
 
-- **BE:** khi giá đi được 1R, dời SL về giá vào.
+- **BE (dời SL về giá vào)**, mức được chốt lúc vào lệnh theo hướng 12 nến H4 (`InpRegimeExit`):
+
+  | Loại lệnh | H4 đi ngược hướng lệnh | H4 đi ngang | H4 đã đi thuận |
+  |---|---|---|---|
+  | LP-AB | 0,7R | 3R | 2R |
+  | PULLBACK | 0,7R | 0,7R | 1R |
+  | MAIN-AB | 1R | 1R | 1R |
+  | LP-BUILD | — | 3R | — |
+
+  Lý do: lệnh LP-AB bắt ngược với 2 ngày vừa qua hay bật lên rồi quay lại quét SL, nên khoá hoà sớm; lệnh ở vùng đi ngang cần chỗ để chạy.
 - **Giữ theo nến ZO (`InpHoldMode = 1`, hệ ZEAR2 / ZEA2):** khi nến M15 chạm một đích mà nến ZOS M15 đó **không phải màu của phe ngược** (BUY: không đỏ, không hồng) thì chưa chốt phần đó. Chốt ở giá đóng của nến ZOS M15 đầu tiên có màu phe ngược. Nếu chính nến chạm đích đã là màu ngược thì chốt ở giá đóng nến đó.
 - **Khoá lời khi giữ (`InpHoldLockR`, hệ ZEAR2):** lúc một phần bắt đầu được giữ, SL của cả lệnh kéo lên giá vào + 0.5R.
 - **Hệ ZEA2:** đích 1R luôn chốt bằng TP cứng; chỉ phần 2 và 3 giữ theo luật trên, không khoá lời.
@@ -214,7 +255,7 @@ Tìm **LP H4 ngược chiều gần nhất phía trước** (còn sống, kể c
 
 ### 7.4. Lot gợi ý
 
-`lot = vốn × rủi ro% / (SL tính bằng pip × giá trị 1 pip của 1 lot)`. Mặc định rủi ro 5% (`InpRiskPct`).
+`lot = vốn × rủi ro% / (SL tính bằng pip × giá trị 1 pip của 1 lot)`. Rủi ro % theo độ tin cậy (`InpRiskMode = 1`): 2%, lên 5% khi có từ 4 yếu tố tin cậy. Lệnh **LP-BUILD luôn 2%** (`InpBuildRiskPct`): cho nó lên 5% làm sụt vốn tăng từ 32% lên 38–41% trong backtest.
 
 ---
 

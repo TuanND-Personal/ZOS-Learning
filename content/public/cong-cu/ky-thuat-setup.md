@@ -5,7 +5,7 @@
 | File | Loại | Công dụng |
 |---|---|---|
 | `MQL4/Scripts/ZO_Backtest/ZOS_Probe.mq4` | script | Xuất các buffer của ZOS ra CSV (xem `zos-buffers.md`) |
-| `MQL4/Indicators/ZO_LP.mq4` | indicator | Tìm LP từ nến Build của ZOS, theo dõi trạng thái, cảnh báo |
+| `MQL4/Indicators/ZO_LP.mq4` | indicator | Ghi dữ liệu LP của khung chart (từ nến ZOS) vào file dùng chung; không vẽ, không cảnh báo |
 | `MQL4/Indicators/ZO_View.mq4` | indicator | Hộp LP khung chart, nến đáng chú ý, đường LP H4 / D1 / W1, bảng phân tích |
 | `MQL4/Experts/ZO_Analyst.mq4` | EA | Phân tích, tín hiệu hệ ZEAR2, nhắc BE / chốt phần giữ, gửi Telegram; tự đặt lệnh trên tài khoản demo |
 | `MQL4/Indicators/ZO_Backtest/ZO_BTView.mq4` | indicator | Hiện lệnh backtest (mặc định hệ chính ZOFLEX) từ `zo_bt_overlay_<cặp>.csv`; bấm vào lệnh để xem lý do |
@@ -34,31 +34,14 @@ phải giữ BOM, nếu mất BOM chữ có dấu sẽ bị lỗi.
 
 ## ZO_LP
 
-Gắn vào chart đã có ZOS. LP của khung chart được vẽ thành hình chữ nhật; LP của các khung cao hơn (trong
-`InpTimeframes`) vẽ thành hai đường `H-<loại>-<khung> <ngày>` và `L-<loại>-<khung> <ngày>`, với loại là
-`LP` (chưa break), `GLP`, `RLP`, `MGLP` hoặc `MRLP` (Main).
+Từ bản 5/10/2026, ZO_LP chỉ làm một việc: tính LP của khung chart nó đang chạy (từ nến ZOS, bằng `ZoCore.mqh`) và ghi vào
+`Common\Files\zo_lp\<cặp>_<phút>.csv` mỗi khi có nến mới. Nó không vẽ, không cảnh báo, không đọc lệnh.
 
-Kiểu đường: liền = đang chờ retest / đang retest, gạch = đã retest và chạy đi (RUN), chấm = chưa break.
-
-Ở mỗi khung, các LP cùng chiều chồng lên nhau được rút lại còn vùng quan trọng nhất
-(Main > tựa lưng vào LP khung lớn > cụm nhiều nến Build > trạng thái > ít lần retest > mới hơn), sau đó hiện
-`InpMaxZonesPerTf` vùng gần giá nhất; Main hiện tại của mỗi chiều luôn được hiện.
-
-Bảng thông tin hiện, cho từng khung, màu ZOS của nến vừa đóng và xu thế theo cấu trúc LP (phe đã làm chết LP
-gần nhất: RLP bị clear → UP, GLP bị clear → DOWN).
-
-Cảnh báo (tiếng Việt):
-
-- giá đi vào LP đã break, nến đóng trong vùng (RETEST), có Main mới;
-- SETUP BUY/SELL (LP khung nhỏ break bên trong LP khung lớn đang retest) kèm plan: EP ở 50% LP nhỏ, SL cách
-  mép `InpSlBufferPips`, TP ở LP ngược chiều gần nhất, RR, và cảnh báo khi RR < `InpMinRR` hoặc ngược xu thế
-  LP của `InpTrendTf`;
-- gợi ý dời BE: khi có LP `InpBeTf` mới cùng chiều với lệnh đang mở, dời SL ra ngoài mép của nó
-  `InpBeBufferPips`;
-- kiểm tra lệnh: lệnh mới mở được đối chiếu với các lỗi Zerd hay nhắc (vào trong LP chưa break, sai nửa vùng,
-  không có LP, ngược xu thế LP, SL chưa đặt hoặc nằm trong LP).
-
-Indicator chỉ đọc lệnh, không bao giờ mở, sửa hay đóng lệnh.
+- EA `ZO_Analyst` mở và giữ một chart H4 có ZOS + ZO_LP (template `ZO_DATA`); với D1 / W1 nó mở chart vài chục giây khi dữ liệu
+  cũ rồi đóng lại.
+- ZO_View vẽ LP và tự ghi cùng file đó cho khung nó đang đứng, nên chart để nhìn không cần ZO_LP.
+- Các việc trước đây ZO_LP làm (vẽ LP, cảnh báo RETEST / SETUP, gợi ý BE, kiểm tra lệnh, bản tin sáng) nay thuộc về ZO_View và
+  ZO_Analyst.
 
 ## Telegram
 

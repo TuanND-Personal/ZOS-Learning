@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom';
 import { DOCS, docPath } from '../content';
 
 const TOOLS = [
-  { name: 'ZO_LP', kind: 'Indicator', what: 'Dựng LP từ ZOS trên từng khung, chia sẻ dữ liệu giữa 5 chart, cảnh báo retest / break / SETUP, gợi ý BE, kiểm tra lệnh.' },
-  { name: 'ZO_Analyst', kind: 'EA', what: 'EA của hệ chính ZO-FLEX: phân tích thị trường, báo Potential EP và tín hiệu vào lệnh (MAIN-AB, PULLBACK, LP-AB), quản lý lệnh kể cả lệnh vào tay, cảnh báo tin, gửi Telegram. Trên tài khoản demo tự đặt và quản lý lệnh; trên tài khoản thật mặc định chỉ báo tín hiệu.' },
-  { name: 'ZO_View', kind: 'Indicator', what: 'Hộp LP khung đang mở (G xanh, R đỏ), đường LP H4 / D1 / W1 có nhãn vai trò, đánh dấu nến break / clear / Main / build 1 đầu / thu nến, bảng phân tích W1→M15.' },
+  { name: 'ZO_LP', kind: 'Indicator', what: 'Ghi dữ liệu LP của khung chart nó đang chạy (tính từ nến ZOS) cho EA đọc. Không vẽ, không gửi tin. EA tự gắn nó lên chart H4.' },
+  { name: 'ZO_Analyst', kind: 'EA', what: 'EA của hệ chính ZO-FLEX: phân tích thị trường, báo Potential EP và tín hiệu vào lệnh (MAIN-AB, PULLBACK, LP-AB, LP-BUILD), quản lý lệnh kể cả lệnh vào tay, cảnh báo tin, gửi Telegram. Trên tài khoản demo tự đặt và quản lý lệnh; trên tài khoản thật mặc định chỉ báo tín hiệu.' },
+  { name: 'ZO_View', kind: 'Indicator', what: 'Indicator duy nhất vẽ LP, chỉ cần một chart: LP M15 là hộp, LP H4 / D1 / W1 là hai đường High – Low; chuyển sang khung nào thì LP khung đó được cập nhật và lưu lại. Kèm bảng phân tích W1→M15.' },
   { name: 'ZO_BTView', kind: 'Indicator · backtest', what: 'Thư mục ZO_Backtest. Xem lại lệnh backtest của hệ ZO-FLEX và chỗ báo EP tiềm năng trên chart; bấm vào một lệnh để xem vì sao vào, yếu tố ủng hộ và không ủng hộ.' },
   { name: 'ZO_RunStart', kind: 'Indicator · backtest', what: 'Thư mục ZO_Backtest. Đánh dấu các điểm bắt đầu đợt chạy trong quá khứ; bấm vào để xem giải thích.' },
   { name: 'ZO_Review', kind: 'Indicator · backtest', what: 'Thư mục ZO_Backtest. Chart sạch (LP H4 / D1 / W1 dạng đường, LP M15 dạng hộp) để tự đánh dấu điểm vào bằng mũi tên.' },
