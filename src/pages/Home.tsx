@@ -19,6 +19,9 @@ export default function Home() {
           <Link to="/hoc/01-nen-tang-trading" className="button">
             Bắt đầu học
           </Link>
+          <Link to="/luyen-case" className="button secondary">
+            Luyện case thực tế
+          </Link>
           <Link to="/cong-cu" className="button secondary">
             Tải công cụ MT4
           </Link>

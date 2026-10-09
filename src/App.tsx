@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import DocPage from './pages/DocPage';
 import ToolsPage from './pages/ToolsPage';
 import DiscordPage from './pages/DiscordPage';
+import CasesPage from './pages/CasesPage';
+import CasePage from './pages/CasePage';
 
 export default function App() {
   const { pathname } = useLocation();
@@ -31,6 +33,9 @@ export default function App() {
         <NavLink to="/" end className="nav-home">
           Trang chủ
         </NavLink>
+        <NavLink to="/luyen-case" className="nav-home">
+          Luyện case
+        </NavLink>
         {SECTIONS.map((s) => (
           <div key={s.id} className="nav-group">
             <NavLink to={`/${s.id}`} end className="nav-title">
@@ -51,6 +56,8 @@ export default function App() {
           <Route path="/hoc" element={<DocPage section="hoc" slug="lo-trinh" />} />
           <Route path="/cong-cu" element={<ToolsPage />} />
           <Route path="/discord" element={<DiscordPage />} />
+          <Route path="/luyen-case" element={<CasesPage />} />
+          <Route path="/luyen-case/:id" element={<CasePage />} />
           <Route path="/:section/:slug" element={<DocPage />} />
           <Route path="*" element={<p>Không tìm thấy trang.</p>} />
         </Routes>
