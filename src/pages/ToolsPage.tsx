@@ -32,7 +32,21 @@ export default function ToolsPage() {
         </a>
       </div>
 
-      <h2>Trong gói có gì</h2>
+      <div className="download">
+        <div>
+          <h3>NEO-Kit.zip</h3>
+          <p>
+            Bộ NEO tự viết, không cần ZOS: indicator NC, NS, NV, NE, EA phân tích <code>NEO_Analyst</code> (gửi Telegram, đặt SL / TP
+            và kéo hoà vốn cho lệnh vào tay, không tự mở lệnh) và template <code>NEO.tpl</code>. Xem{' '}
+            <Link to="/cong-cu/neo-huong-dan">hướng dẫn bộ NEO</Link>.
+          </p>
+        </div>
+        <a className="button" href={`${base}downloads/NEO-Kit.zip`} download>
+          Tải về
+        </a>
+      </div>
+
+      <h2>Trong gói ZO-Tool có gì</h2>
       <div className="table-wrap">
         <table>
           <thead>
